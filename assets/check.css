@@ -1,0 +1,161 @@
+/* ── 抽查单（语文）─────────────────────────────────────────
+   一课一张，一张一页：撑满 A4，总评区钉在页底。
+   依赖 palette.css + print.css。
+
+   **字号是给孩子看的，别调小**：题面楷体 20px、块名 18px，
+   答案 12.5px。一张单子 5~6 个题块正好装满一页 A4，
+   块多了会溢出到第二页 —— 删块，或把 ask 的答案写短些。
+   改完 Read 生成的 PDF 看排版，别凭 HTML 源码想象。 */
+
+body{
+  margin: 0;
+  font-family: var(--font-cn);
+  color: #111;
+  font-size: 13px;
+  background: #888;             /* 屏幕上模拟纸外的桌面 */
+}
+@media print{ body{ background: #fff; } }
+
+/* 一张单子一页：撑满 A4，好让 .total 钉在页底 */
+.sheet{ display: flex; flex-direction: column; min-height: 297mm; }
+@media print{ .sheet{ height: 297mm; } }
+
+/* ── 页头 ── */
+.head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid #111;
+  padding-bottom: 6px;
+  margin-bottom: 3mm;
+}
+.head h1{ font-size: 18px; margin: 0; padding-right: 10px; }
+.head h1 small{ font-size: 13px; font-weight: 400; color: #666; }
+.head .info{ font-size: 12px; white-space: nowrap; }
+.head .info span{ margin-left: 10px; }
+.head .info b{ color: var(--chinese); }
+.blank{ display: inline-block; border-bottom: 1px solid #111; width: 42px; }
+
+/* 使用说明（spec 的 hint:）：印在页头下面，给家长看的 */
+.hint{
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--chinese-bg);
+  border-left: 3px solid var(--chinese);
+  border-radius: 0 4px 4px 0;
+  padding: 4px 9px;
+  margin: 0 0 4mm;
+}
+
+/* ── 题块 ── */
+.blocks{ flex: 0 0 auto; }
+.block{ margin-bottom: 4mm; break-inside: avoid; }
+.bh{
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 3px;
+  margin-bottom: 2.5mm;
+}
+.bh .no{
+  flex: 0 0 auto;
+  width: 5.5mm; height: 5.5mm;
+  border-radius: 50%;
+  background: var(--chinese);
+  color: #fff;
+  font-size: 10px;
+  display: grid; place-items: center;
+  align-self: center;
+}
+.bh h2{
+  flex: 1 1 auto;
+  font-family: var(--font-kai);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+.bh h2 small{ font-size: 13px; font-weight: 400; color: #666; }
+.bh .meta{ flex: 0 0 auto; font-size: 12px; color: #666; white-space: nowrap; }
+.bh .meta em{ font-style: normal; color: var(--chinese); }
+/* 过关线：金色标签。分类色里刻意没有红 —— 红专属「分数越差越红」 */
+.bh .meta i{
+  font-style: normal;
+  margin-left: 8px;
+  color: var(--ink);
+  background: var(--warn-bg);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.note{ font-size: 12.5px; color: #777; margin: 0 0 2.5mm; }
+
+/* 勾选框：家长边问边打勾 */
+.tick{
+  flex: 0 0 auto;
+  box-sizing: border-box;      /* 边框吃在尺寸里，加粗不改行高 */
+  width: 5.4mm; height: 5.4mm;
+  border: var(--w-box) solid var(--ink-box);
+  border-radius: 1mm;
+  background: #fff;
+}
+
+/* ── 词语网格：两列，一项一格 ── */
+.items{ display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 6mm; }
+.items .it{ display: flex; align-items: center; gap: 2.5mm; }
+.items .q{ font-family: var(--font-kai); font-size: 20px; white-space: nowrap; }
+.items .a{
+  font-size: 13px;
+  color: var(--chinese);
+  font-family: "Times New Roman", var(--font-cn), serif;
+}
+.items .dots{ flex: 1 1 auto; border-bottom: 1px dotted var(--ink-rule); }
+
+/* ── 整行问答：题面长、答案长的用这个 ── */
+.ask{ display: flex; align-items: flex-start; gap: 2.5mm; margin-bottom: 2.5mm; }
+.ask .tick{ margin-top: .6mm; }
+.ask .body{ flex: 1 1 auto; min-width: 0; }
+.ask .q{ font-family: var(--font-kai); font-size: 20px; }
+.ask .a{ font-size: 12.5px; color: #777; line-height: 1.65; }
+.ask .a b{ color: var(--chinese); font-weight: 400; }
+
+/* ── 听写用的空白横线（压到一行，够家长记个错字就行）── */
+.lines .ln{ height: 11mm; border-bottom: var(--w-line) solid var(--ink-line); }
+.lines .ln:first-child{ margin-top: 1mm; }
+.answer{ font-size: 12.5px; color: #999; margin: 2mm 0 0; }
+.answer b{ color: var(--chinese); font-weight: 400; }
+
+/* 总评区钉在页底 */
+.total{
+  margin-top: auto;
+  padding-top: 4mm;
+  border-top: 1.5px dashed #bbb;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #555;
+}
+.total .big{ font-size: 14px; color: #111; }
+.total .big b{ color: var(--chinese); font-size: 16px; }
+
+.foot{ margin-top: 2mm; text-align: right; color: #999; font-size: 10px; }
+
+/* ── 屏幕（手机）：三处左右分列的行改成上下两行 ────────────
+   纸上 210mm 宽，页头、块头、总评区都是「左边内容 ｜ 右边小字」左右分列。
+   手机上纸宽被压到屏宽，这三处的 nowrap 小字会把左边挤到折行 ——
+   块名折成两行、圆圈号跟着错位、「过关 __ / 17 项」断开。
+   **只在 @media screen 里改，@media print 一个字都不动**（纸上那份没这毛病）。 */
+@media screen and (max-width: 760px){
+  .head{ flex-direction: column; align-items: flex-start; gap: 3px; }
+  .head h1{ padding-right: 0; }
+  .head h1 small{ font-size: 12.5px; }
+  .head .info{ white-space: normal; }
+
+  /* 块头：圆圈号 + 块名占第一行，时长和过关线换到第二行、缩进对齐块名 */
+  .bh{ flex-wrap: wrap; align-items: flex-start; }
+  .bh .no{ align-self: flex-start; margin-top: 1px; }
+  .bh .meta{ flex: 1 0 100%; white-space: normal; padding-left: 7.5mm; }
+  .bh .meta i{ margin-left: 6px; }
+
+  .total{ flex-direction: column; align-items: flex-start; gap: 4px; }
+}

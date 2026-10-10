@@ -1,0 +1,79 @@
+/* ── 今日练习单（语文）────────────────────────────────────
+   看拼音写汉字：拼音在上，田字格在下。
+   依赖 palette.css + print.css + grid.css。
+
+   --cell / --gap / --py 由 spec 的旋钮通过 .sheet 的内联 style 注入，
+   grid.css 的 .tian 和这里的 .py 读的是同一个 --cell，所以两行天然对齐。 */
+
+body{
+  margin: 0;
+  font-family: var(--font-cn);
+  color: #111;
+  font-size: 13px;
+  background: #888;             /* 屏幕上模拟纸外的桌面 */
+}
+@media print{ body{ background: #fff; } }
+
+.sheet{ --cell: 15mm; --gap: 4mm; --py: 11px; }
+
+/* ── 页头 ── */
+.head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid #111;
+  padding-bottom: 6px;
+  margin-bottom: 5mm;
+}
+.head h1{ font-size: 15px; margin: 0; padding-right: 10px; }
+.head .info{ font-size: 12px; white-space: nowrap; }
+.head .info span{ margin-left: 10px; }
+.blank{ display: inline-block; border-bottom: 1px solid #111; width: 44px; }
+
+.hint{ font-size: 11px; color: #777; margin: 0 0 4mm; }
+
+/* ── 区块 ── */
+.block{ margin-bottom: 4mm; }
+.block h2{
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 2.5mm;
+  border-left: 3px solid var(--chinese);
+  padding-left: 5px;
+  line-height: 1.2;
+}
+
+/* ── 项：一个字/词 = 拼音行 + 一到多行田字格 ── */
+.items{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4mm var(--gap);
+}
+.item{
+  display: inline-grid;
+  grid-template-rows: auto;
+  break-inside: avoid;          /* 别把一个词劈到两页 */
+}
+
+/* 拼音行：和 .tian-row 用同一个 --cell 当列宽，所以逐字对齐 */
+.py{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--cell);
+  justify-content: start;
+}
+.py span{
+  text-align: center;
+  font-size: var(--py);
+  line-height: 1.5;
+  color: #333;
+  font-family: "Times New Roman", var(--font-cn), serif;
+  letter-spacing: -.2px;
+}
+
+.foot{
+  margin-top: 4mm;
+  text-align: right;
+  color: #999;
+  font-size: 10px;
+}

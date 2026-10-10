@@ -1,0 +1,80 @@
+/* ── 色板：全站单一真源 ────────────────────────────────────
+   改颜色只改这里。三科色沿用「学习小站」家族既有取值，
+   和老的 english 站 --who/--do/--done 是对齐过的，别随手换。 */
+
+:root{
+  /* 纸与墨 */
+  --paper:      #FBF6EB;   /* 页面底色：暖纸 */
+  --card:       #FFFDF8;   /* 卡片底色 */
+  --ink:        #4A3F36;   /* 正文 */
+  --ink-soft:   #9A8C7C;   /* 次要文字 */
+  --line:       rgba(120,104,84,.16);  /* 描边 */
+  --grid:       rgba(120,104,84,.05);  /* 背景格纹 */
+
+  /* 三科色（前景 / 浅底） */
+  --english:    #3E9BD6;  --english-bg: #DCEFFB;
+  --chinese:    #EE7D5B;  --chinese-bg: #FBE0D5;
+  --math:       #45B988;  --math-bg:    #D8F2E6;
+
+  /* 提示色。注意：分类色里刻意没有红——红专属「分数越差越红」 */
+  --warn:       #E2A413;  --warn-bg:    #FBEFC9;
+
+  /* 打卡评价的内容分类色。取值照搬老站 ../english/palette.css，
+     两边同时在线，同一份报告换个站不该换个颜色。
+     一份报告整页的主色就是它的分类色 —— 打开就知道这是哪一类。 */
+  --c-listen:   #4A90D9;  --c-listen-bg:#DFECFA;   /* G3 · Wonders */
+  --c-read:     #E08B3C;  --c-read-bg:  #FBEBD9;   /* 超8 */
+  --c-word:     #5BA97E;  --c-word-bg:  #E2F1E9;   /* 单词表 */
+  --c-gram:     #2E9A96;  --c-gram-bg:  #DCEFEE;   /* 语法 */
+  --c-drill:    #A97EC4;  --c-drill-bg: #F0E7F7;   /* 新分类先用这个 */
+
+  /* 学习方法卡的右半张（一条常识）：浅金，像拿到一张收藏卡。
+     **别换成红 / 橙底** —— 那是「要挨批评了」的颜色，这半张要的是「赚到了」 */
+  --bonus:      #B8862B;  --bonus-bg:   #FFF6DF;  --bonus-line: #EBD7A6;
+  --bonus-bg2:  #FCE9B8;  --bonus-hl:   #F8DC8E;   /* 渐变的另一头 / 名字底下那道荧光笔 */
+
+  /* 教材总览：老站那套蓝 / 红 / 绿。**这个栏目不走语文橙** —— 它是一张查阅表，
+     不是练习单：蓝管结构（表头、课号、摘要框），红管「有活儿」（要背 / 要默写
+     的格子），绿管语文园地那几行。
+     ⚠️ 红在这儿是**有意的例外**（分类色里刻意没有红，红专属「分数越差越红」）：
+     这张表的全部用处就是扫出哪几行有活儿，橙底和语文的三科色是同一支，
+     底色和字色撞在一起就扫不出来了。灰度都在 86~106，黑白打印也认得出。 */
+  --ov-blue:    #2A6099;  --ov-blue-bg:   #EAF2F8;  /* 课号 / 表头 / 摘要标题 */
+  --ov-blue-soft: #F4F8FC; --ov-line:     #C8D8E4;  /* 摘要框底 / 表格线 */
+  --ov-red:     #C0392B;  --ov-red-bg:    #FBEDEC;  /* 要背 / 要默写 */
+  --ov-green:   #2E8B57;  --ov-aside-bg:  #FAFAFA;  /* 语文园地那几行 */
+
+  /* 图表用色：三把尺子的分档底、停顿地图的四种段。
+     停顿地图：绿=在读，蓝=句末停顿（该停的），橙=句中长停，灰=句中短停 */
+  --sc-hard:    #F6DCD1;  --sc-inst:    #FBEFC9;  --sc-indep:  #D8F2E6;
+
+  /* 涨跌两色。报告里的「和上一页比」和目录页的「当天汇总」用同一对 ——
+     原来这两个值硬编码在 review.css 里，另一处要用就得抄一份，所以收到这儿。
+     注意这支红是**文字色**，别和上面 --sc-hard 那种浅底纹混用。 */
+  --up:         #1F7A55;  --down:       #B4442A;
+  --sc-band1:   #EAE0D0;  --sc-band2:   #CFE3F3;  --sc-mid:    #3E9BD6;
+  --tl-speech:  #CDEBDD;  --tl-end:     #6FB6E2;
+  --tl-long:    #EE7D5B;  --tl-mid:     #CBBCA9;
+  /* 不计进统计的那几段（念生词表、读划线外的段落）。图上仍画出来 —— 录音里确实
+     有这段时间 —— 但盖一层灰，跟「评的是哪一段」对得上 */
+  --tl-skip:    #9A9287;
+
+  /* 字体栈：显示体走圆体，正文走系统中文。
+     ⚠️ 每个栈都必须带 Linux 字体名 —— PDF 是 GitHub Actions 的 ubuntu
+        runner 上导出的，那儿没有 PingFang / Kaiti，缺了 Noto 和 UKai
+        这几个名字，整份 PDF 的中文会全变成方块。
+        实际装了哪些字体，看 CI 日志里「可用的中文字体」那一步。 */
+  --font-display: ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN",
+                  "Varela Round","Quicksand","PingFang SC",
+                  "Noto Sans CJK SC","Noto Sans SC",system-ui,sans-serif;
+  --font-cn:      "PingFang SC","Hiragino Sans GB","Microsoft YaHei",
+                  "Noto Sans CJK SC","Noto Sans SC","WenQuanYi Zen Hei",
+                  system-ui,sans-serif;
+  /* 田字格里的范字。楷体在 Linux 上只有文鼎 UKai，
+     实在没有就退到宋体（Noto Serif）—— 字形不理想，但总比方块好。 */
+  --font-kai:     "Kaiti SC","STKaiti","KaiTi",
+                  "LXGW WenKai","AR PL UKai CN","AR PL UKai TW",
+                  "Noto Serif CJK SC","Noto Serif SC",serif;
+
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}

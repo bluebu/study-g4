@@ -1,0 +1,123 @@
+/* ── 格子：田字格 / 四线三格 ────────────────────────────────
+   三科写字类打印单的共同地基。依赖 palette.css 的 --font-kai。
+   必须配合 print.css 的 print-color-adjust:exact，否则打印时线全没了。
+
+   ⚠️ 所有旋钮都定义在 :root，不要挪到 .tian / .four 里去。
+      CSS 自定义属性只向下继承 —— 定义在 .tian 上的话，
+      父元素 .tian-row 读不到，它那句共享边线的负边距会静默失效，
+      结果行与行之间的线叠成双倍粗。 */
+
+:root{
+  /* 田字格 */
+  --cell:             15mm;      /* 格子边长，排满一页 A4 的主旋钮 */
+  --tian-rule:        .75pt;     /* 外框线宽 */
+  --tian-rule-color:  #D94F4F;
+  --tian-cross:       .5pt;      /* 十字虚线：比外框更细更浅，
+                                    孩子要看的是自己写的字，格线只是参照 */
+  --tian-cross-color: #E79A9A;
+  --tian-ink:         #444;      /* 答案版印出来的字色 */
+
+  /* 四线三格。颜色和高度是老站 ket 定稿的（用户拍过板）：
+     绿四线 + 红第三线（基线），总高 11mm ≈ 小学英语本的行距。
+     孩子四年级，行距宁松勿密 —— 别为了一页多放几个词调小。 */
+  --four-h:           11mm;      /* 三格总高 */
+  --four-rule:        1px;       /* 老站是 1px 实线；.5pt 打出来太淡，孩子看不清 */
+  --four-rule-color:  #4FAE7E;
+  --four-base-color:  #E04B4B;   /* 基线（第 3 线）单独一色，写字时对齐它 */
+}
+
+
+/* ══════ 田字格（语文）══════ */
+.tian{
+  box-sizing: border-box;
+  display: inline-grid;
+  place-items: center;
+  vertical-align: top;
+  position: relative;
+
+  width: var(--cell);
+  height: var(--cell);
+  border: var(--tian-rule) solid var(--tian-rule-color);
+
+  font-family: var(--font-kai);
+  font-size: calc(var(--cell) * .62);
+  line-height: 1;
+  color: var(--tian-ink);
+}
+
+/* 十字虚线。用 border 画才是真虚线，别用 height+background（那是实心条） */
+.tian::before,
+.tian::after{
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.tian::before{                      /* 横中线 */
+  left: 0; right: 0; top: 50%;
+  border-top: var(--tian-cross) dashed var(--tian-cross-color);
+  transform: translateY(-50%);
+}
+.tian::after{                       /* 竖中线 */
+  top: 0; bottom: 0; left: 50%;
+  border-left: var(--tian-cross) dashed var(--tian-cross-color);
+  transform: translateX(-50%);
+}
+
+/* 描红态：印浅字给孩子照着描 */
+.tian.faint{ color: rgba(74,63,54,.20); }
+
+/* 相邻格子共享边线：靠负边距。
+   ⚠️ 别改成每格各画一圈边框 —— 相邻边会叠成双倍粗线。 */
+.tian + .tian{ margin-left: calc(var(--tian-rule) * -1); }
+
+/* 一行格子。同一个词抄好几遍时，行与行也共享横边、连成一整块，
+   而不是散成几条 —— 所以这里也是负边距。 */
+.tian-row{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--cell);
+  justify-content: start;
+}
+.tian-row + .tian-row{ margin-top: calc(var(--tian-rule) * -1); }
+
+
+/* ══════ 四线三格（英语）══════ */
+.four{
+  box-sizing: border-box;
+  position: relative;
+  height: var(--four-h);
+  border-top:    var(--four-rule) solid var(--four-rule-color);
+  border-bottom: var(--four-rule) solid var(--four-rule-color);
+}
+.four::before,               /* 第 2 线 */
+.four::after{                /* 第 3 线（基线） */
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  border-top: var(--four-rule) solid var(--four-rule-color);
+  pointer-events: none;
+}
+.four::before{ top: calc(var(--four-h) / 3); }
+.four::after {
+  top: calc(var(--four-h) / 3 * 2);
+  border-top-color: var(--four-base-color);   /* 基线是红的 */
+}
+
+/* 写在四线三格里的词：基线落在第 3 线，小写字母主体占中格 */
+.four .w{
+  position: absolute;
+  left: 2mm;
+  bottom: calc(var(--four-h) / 3 - .6mm);
+  font-family: var(--font-display);
+  font-size: calc(var(--four-h) / 3 * 1.05);
+  line-height: 1;
+  color: var(--ink);
+}
+.four .w.faint{ color: rgba(74,63,54,.20); }
+
+
+/* ══════ 竖式（数学）══════
+   TODO: 搬数学讲义时再定。老站 math 的竖式是逐页手写 HTML
+   （撇缩短至与数字等高、除数靠左、撇居中、批注不挤偏 —— 见老站
+   commit「竖式排版微调」），格式还没稳定成可复用的类，
+   等有第一份真实讲义时再从中抽取，别凭想象先写。 */

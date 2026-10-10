@@ -1,0 +1,101 @@
+/* ── 打卡评价的目录页 ────────────────────────────────────
+   接在 site.css 后面，只加它没有的三样：按日期分组的小标题、
+   分类标签、分数徽章。
+
+   每个 <li> 上由 build.py 注入四个变量：
+     --s / --sbg    分数色（越差越红）
+     --c / --cbg    分类色（这是哪一类）
+   两套色同时在一行上，各管各的 —— 别合并成一套。 */
+
+.day{
+  font-family:var(--font-display); font-size:.95rem; color:var(--ink-soft);
+  margin:26px 4px 10px; letter-spacing:.02em;
+  display:flex; align-items:center; gap:10px;
+}
+/* 日期是「当天那一页」的入口 —— 并进日页之后它就是这一页的主导航。
+   蓝色下划线由 base.css 统一压掉了，这儿要做的是**让它看着能点**：
+   比原来的灰重一档 + 一个小箭头。比下划线安静，也比纯灰文字诚实。 */
+.day a{
+  display:inline-flex; align-items:center; gap:6px;
+  color:var(--ink); font-weight:700;
+}
+.day a::after{
+  content:"›"; font-size:1.15em; line-height:1; color:var(--ink-soft);
+  transition:transform .12s ease, color .12s ease;
+}
+.day a:hover{ color:var(--english); }
+.day a:hover::after{ color:var(--english); transform:translateX(2px); }
+.day a:active{ color:var(--english); }
+.day a:active::after{ color:var(--english); }
+.day .pdf{
+  margin-left:auto; font-size:.74rem; padding:2px 10px; border-radius:999px;
+  color:var(--ink-soft); background:transparent; border:1.5px solid var(--line);
+}
+.day .pdf:active{ background:var(--ink-soft); color:var(--card); }
+/* site.css 的 .list li 是 grid 两列（左列 minmax(0,1fr) 可收缩、右列 auto），
+   这里不动它 —— 右边三样打包进 .meta 当作那一个 auto 列，
+   窄屏上左列自己收缩、右列整体保持，不会把按钮挤到下一行去。 */
+.list .meta{
+  display:flex; align-items:center; gap:8px; justify-self:end;
+}
+.list .cat{
+  flex:0 0 auto; font-size:.76rem; font-weight:700; font-family:var(--font-display);
+  color:var(--c,var(--english)); background:var(--cbg,var(--english-bg));
+  border-radius:999px; padding:3px 10px; white-space:nowrap;
+}
+.list .sc{
+  flex:0 0 auto; width:38px; height:38px; border-radius:12px;
+  display:grid; place-items:center; font-family:var(--font-display); font-weight:800;
+  color:var(--s,var(--ink-soft)); background:var(--sbg,rgba(120,104,84,.10));
+}
+/* 有点读作业、还没有成绩单的一天。**虚线 + 不可点**，形状上就和有成绩单的那几天
+   分得开：日期还是同一档字号（时间线要对齐），右边一行小字说缺的是哪几页。
+   刻意不给红 —— 红专属「分数越差越红」，缺一份不是考差了。 */
+.gap{
+  margin:26px 0 10px; padding:11px 13px;
+  border:1.5px dashed var(--line); border-radius:12px;
+  background:transparent;
+}
+.gap h2{
+  margin:0; font-family:var(--font-display); font-size:.95rem;
+  letter-spacing:.02em; color:var(--ink-soft); font-weight:700;
+}
+.gap p{
+  margin:3px 0 0; font-size:.8rem; line-height:1.6; color:var(--ink-soft);
+  display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+}
+.gap p small{
+  font-size:.72rem; padding:1px 8px; border-radius:999px;
+  border:1px solid var(--line); color:var(--ink-soft); white-space:nowrap;
+}
+.empty{ color:var(--ink-soft); text-align:center; padding:40px 0; }
+
+/* site.css 里的「打印单」按钮吃的是语文橙红。放到这一页就不对了：
+   同一行右边就是分数徽章（越差越红），一个橙红的按钮挨着它，
+   看着像在说「这份分数很差」。这里压成中性描边，只当一个次要入口。 */
+.list .pdf{
+  color:var(--ink-soft); background:transparent;
+  border:1.5px solid var(--line);
+}
+.list .pdf:active{ background:var(--ink-soft); color:var(--card); }
+
+/* 手机上标题会被右边那组挤成两行。分类标签是这里最先该让位的 ——
+   标题本身就以「超8」开头，同一行挂两遍是白占 50px。 */
+@media (max-width:430px){
+  .list .cat{ display:none; }
+}
+
+/* 趋势页入口。样式必须放在这儿而不是 trend.css —— 按钮长在**目录页**上，
+   那一页只引 site.css + 本文件，引不到 trend.css。 */
+.hero .trend{
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: .86rem;
+  text-decoration: none;
+}
+.hero .trend:active{ border-color: var(--english); color: var(--english); }

@@ -1,0 +1,302 @@
+/* ── 打卡评价的报告页 ──────────────────────────────────────
+   从老站 ../english/review/reports/*.html 的内联 style 搬过来，
+   色值全部换成 palette.css 的变量 —— 老站每份报告各带一份同样的
+   178 行 style，改个颜色要改 7 个文件。
+
+   两个变量由 build.py 按页注入到 .sheet 上，别写死：
+     --read   分类色（超8 橙 / G3 蓝 / 单词 绿 / 语法 青），整页的主色
+     --score  分数色（越差越红），只给总分和四维条用
+   分类色说「这是哪一类」，分数色说「做得怎么样」，同一页上各管各的。 */
+
+:root{ --radius:20px; }
+
+*{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; }
+body{
+  margin:0; font-family:var(--font-cn); color:var(--ink); line-height:1.7;
+  background-color:var(--paper);
+  background-image:
+    radial-gradient(60% 50% at 88% -5%, rgba(226,164,19,.12), transparent 70%),
+    radial-gradient(55% 45% at -8% 8%,  rgba(62,155,214,.10), transparent 70%),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:100% 100%,100% 100%,26px 26px,26px 26px;
+  background-attachment:fixed,fixed,scroll,scroll;
+}
+.wrap{ max-width:760px; margin:0 auto; padding:0 20px 80px; }
+
+.hero{ text-align:center; padding:40px 0 6px; }
+.eyebrow{
+  display:inline-block; font-family:var(--font-display); font-size:.78rem;
+  letter-spacing:.18em; color:var(--ink-soft);
+  border:1.5px solid var(--line); border-radius:999px; padding:4px 14px;
+  background:var(--card);
+}
+h1{ font-family:var(--font-display); font-size:clamp(1.7rem,6.4vw,2.4rem);
+    margin:14px 0 6px; line-height:1.25; }
+.sub{ color:var(--ink-soft); margin:0; font-size:.95rem; }
+
+/* ── 日页里的一次录音 ──────────────────────────────────────
+   一天一个页面（review/day.html），当天每次录音是这么一节
+   （版式在 review/one.html 的 card 宏）。
+
+   两套色注在**这一节**的行内 style 上，所以 var(--read) / var(--score)
+   在节内有效、节与节之间互不影响 —— 原先注在 :root，一页多次就互相盖掉了。
+
+   节之间用一条虚线分隔，**不再套一层卡片** —— 节里面本来全是卡片（.box），
+   再包一层框会变成双线。 */
+.one{ display:block; margin-top:28px; }
+.one + .one{ margin-top:46px; padding-top:38px; border-top:2px dashed var(--line); }
+.one-h{ text-align:center; margin:0; }
+.one-t{
+  font-family:var(--font-display); font-size:clamp(1.25rem,4.8vw,1.65rem);
+  margin:0 0 4px; line-height:1.3;
+}
+/* 卷名里的最后一个数字描成这一节的主色（「超8 · Lesson 3」的 3） */
+.one-t b{ color:var(--read); }
+
+.box{
+  background:var(--card); border:1.5px solid var(--line); border-radius:var(--radius);
+  padding:18px 20px; box-shadow:0 2px 0 var(--line); margin:0 0 18px;
+}
+.mini-h{
+  font-family:var(--font-display); font-size:1.05rem; margin:32px 4px 12px;
+  display:flex; align-items:center; gap:8px;
+}
+
+/* 总分 */
+.score{ display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:26px; }
+.score .num{
+  flex:0 0 auto; width:112px; height:112px; border-radius:28px;
+  background:var(--score-bg,var(--read-bg)); display:grid; place-items:center; line-height:1;
+}
+.score .num b{ font-family:var(--font-display); font-size:2.9rem; color:var(--score,var(--read)); }
+.score .num span{ font-size:.78rem; color:var(--ink-soft); margin-top:4px; }
+.score .say{ flex:1 1 220px; min-width:0; }
+.score .say p{ margin:0; }
+.score .say .lead{ font-weight:600; font-size:1.05rem; }
+.say2 .tip{ color:var(--ink-soft); font-size:.9rem; margin:0; line-height:1.85; }
+
+/* 分数的尺子：换书就换了一把尺子，这一行让那个大数字有个限定语 */
+/* 总评里的要点行（[总评] 的 `* ` 说明行）。一条一行、圆点悬挂在文字外面，
+   数字才落在每行开头读得出来。颜色同 .tip，b 用正文色提一级 */
+.say2 .pts{ list-style:none; margin:0; padding:0; }
+.say2 .tip + .pts{ margin-top:8px; }
+.say2 .pts li{
+  position:relative; padding-left:15px; margin-top:5px;
+  color:var(--ink-soft); font-size:.9rem; line-height:1.75;
+}
+.say2 .pts li::before{
+  content:""; position:absolute; left:3px; top:.62em;
+  width:5px; height:5px; border-radius:50%; background:var(--score,var(--read)); opacity:.55;
+}
+.say2 .pts b{ color:var(--ink); }
+.score .ruler{ margin:14px 0 0; font-size:.8rem; line-height:1.65; color:var(--ink-soft); }
+
+.bars{ margin-top:18px; display:flex; flex-direction:column; gap:10px; }
+.bar{ display:flex; align-items:center; gap:10px; font-size:.9rem; }
+.bar .nm{ flex:0 0 5.2em; color:var(--ink-soft); }
+.bar .track{
+  flex:1 1 auto; height:12px; border-radius:999px; background:rgba(120,104,84,.10);
+  overflow:hidden;
+}
+.bar .fill{ display:block; height:100%; border-radius:999px; background:var(--score,var(--read)); }
+.bar .val{ flex:0 0 3.4em; text-align:right; font-family:var(--font-display); font-weight:700; }
+
+/* 四个数字 */
+.stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.stat{
+  background:var(--card); border:1.5px solid var(--line); border-radius:16px;
+  box-shadow:0 2px 0 var(--line); padding:14px 8px; text-align:center;
+}
+.stat b{ display:block; font-family:var(--font-display); font-size:1.35rem; line-height:1.2; }
+.stat span{ display:block; font-size:.76rem; color:var(--ink-soft); margin-top:4px; }
+.stat.s1 b{ color:var(--math); }   .stat.s2 b{ color:var(--chinese); }
+.stat.s3 b{ color:var(--english); } .stat.s4 b{ color:var(--read); }
+
+/* 三把尺子。viewBox 宽 1000：手机上缩到约 0.31，iPad 上封顶 0.56，
+   字号才两头都读得清 —— SVG 里的 font-size 是按这个缩放定的，别单独调 */
+.scales svg{ display:block; width:100%; max-width:560px; height:auto;
+             overflow:visible; margin:10px auto 0; }
+.sc-h{ font-family:var(--font-display); font-weight:700; font-size:.95rem; margin:0 0 2px; }
+.sc-h.sc-sep{ margin-top:30px; padding-top:22px; border-top:1.5px dashed var(--line); }
+.sc-note{ font-size:.88rem; color:var(--ink-soft); margin:14px 0 0; }
+.sc-note b{ color:var(--ink); }
+.naep{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+.nv{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px;
+     background:rgba(120,104,84,.05); font-size:.9rem; color:var(--ink-soft); }
+.nv .lv{ flex:0 0 auto; width:24px; height:24px; border-radius:8px; display:grid; place-items:center;
+         font-family:var(--font-display); font-weight:800; font-size:.82rem;
+         background:var(--card); border:1.5px solid var(--line); }
+.nv .ds{ flex:1 1 auto; }
+.nv .you{ flex:0 0 auto; font-size:.76rem; font-weight:700; color:var(--read); white-space:nowrap; }
+.nv.now{ background:var(--read-bg); color:var(--ink); font-weight:600; }
+.nv.now .lv{ background:var(--read); color:var(--card); border-color:transparent; }
+
+/* 和上一页比 */
+.cmp{ display:flex; flex-direction:column; gap:10px; }
+.cmp .r{ display:flex; align-items:center; gap:10px; font-size:.92rem; }
+.cmp .r .k{ flex:0 0 5.6em; color:var(--ink-soft); }
+.cmp .r .v{ flex:1 1 auto; font-family:var(--font-display); min-width:0; }
+.cmp .r .v s{ color:var(--ink-soft); text-decoration:none; opacity:.65; }
+.cmp .r .d{ flex:0 0 auto; font-family:var(--font-display); font-weight:700; font-size:.82rem;
+            border-radius:999px; padding:3px 10px; white-space:nowrap; }
+.cmp .r .d.up{ background:var(--math-bg); color:var(--up); }
+.cmp .r .d.down{ background:var(--chinese-bg); color:var(--down); }
+.cmp .r .d.flat{ background:rgba(120,104,84,.08); color:var(--ink-soft); }
+
+/* 停顿地图 */
+.tl svg{ display:block; width:100%; height:auto; overflow:visible; }
+.legend{ display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; font-size:.82rem; color:var(--ink-soft); }
+.legend i{ display:inline-block; width:14px; height:14px; border-radius:4px;
+           vertical-align:-2px; margin-right:5px; border:1px solid var(--line); }
+.tl-note{ font-size:.9rem; margin:14px 0 0; }
+.tl-note.small{ font-size:.8rem; color:var(--ink-soft); }
+/* 一处卡壳一行：左边编号（和图上的括号同色），右边三行 —— 卡在哪 / 发生了什么 / 问一句 */
+.stalls{ list-style:none; margin:16px 0 0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.stalls li{ display:grid; grid-template-columns:30px 1fr; gap:0 10px; align-items:start;
+            background:rgba(238,125,91,.06); border-radius:12px; padding:10px 12px; }
+.stalls .no{ font-size:1.3rem; line-height:1.4; color:var(--tl-long); font-weight:700; text-align:center; }
+.stalls p{ margin:0; min-width:0; }
+.stalls .ph{ font-family:var(--font-display); font-size:1.05rem; }
+.stalls .ph .hit{ color:var(--tl-long); border-bottom:2px solid var(--tl-long); }
+.stalls .what{ font-size:.86rem; color:var(--ink-soft); margin-top:2px; }
+.stalls .what em{ font-style:normal; font-weight:700; color:var(--tl-long); margin-right:6px; }
+.stalls .ask{ font-size:.92rem; margin-top:6px; color:var(--ink); }
+
+/* 逐字比对 */
+.diff{ display:flex; flex-direction:column; gap:12px; }
+/* ⚠️ 这几条**必须带 .diff 前缀**。`.d` 是「比对里的一条」，但同名的类
+   在「和上一次比」里也有一个（`<span class="d up">` 那几个趋势标签）——
+   裸的 `.d{ display:grid; grid-template-columns:34px 1fr }` 会把标签的文字
+   锁进 34px 的第一列，「又往上了一点」要 89px 只给到 66px，字直接漏到胶囊
+   外面去；连带 border 和 box-shadow 也糊到标签上。别再把前缀去掉 */
+.diff .d{
+  background:var(--card); border:1.5px solid var(--line); border-radius:16px;
+  box-shadow:0 2px 0 var(--line); padding:14px 16px;
+  display:grid; grid-template-columns:34px 1fr; gap:4px 12px; align-items:start;
+}
+.diff .d .n{
+  grid-row:1 / span 3; width:34px; height:34px; border-radius:12px;
+  display:grid; place-items:center; background:var(--chinese-bg); color:var(--chinese);
+  font-family:var(--font-display); font-weight:800; font-size:.92rem;
+}
+/* 存疑的一处：编号出 ?，别让它长得像已经定案的 */
+.diff .d.doubt .n{ background:var(--warn-bg); color:var(--warn); }
+.diff .d .en{ font-family:var(--font-display); font-size:.98rem; overflow-wrap:break-word; }
+.diff .d .en .lbl{ color:var(--ink-soft); font-size:.76rem; margin-right:6px; font-family:var(--font-cn); }
+.diff .d .why{ font-size:.85rem; color:var(--ink-soft); }
+/* 一句一张卡：没有左边那一列编号，编号跟着错处走（sup.k），说明列在底下 */
+.diff .d.g{ display:flex; flex-direction:column; gap:6px; }
+.diff .d.g .en{ line-height:1.9; }
+.diff .d .k{ font-family:var(--font-display); font-size:.68rem; font-weight:800;
+  color:var(--chinese); margin-left:1px; vertical-align:super; line-height:0; }
+.diff .d .whys{ list-style:none; margin:6px 0 0; padding:8px 0 0; border-top:1px dashed var(--line);
+  display:flex; flex-direction:column; gap:6px; }
+.diff .d .whys li{ display:flex; gap:8px; align-items:baseline; }
+.diff .d .whys .n{ flex:0 0 auto; width:auto; min-width:22px; height:22px; border-radius:8px; padding:0 4px;
+  display:inline-grid; place-items:center; background:var(--chinese-bg); color:var(--chinese);
+  font-family:var(--font-display); font-weight:800; font-size:.76rem; }
+.diff .d .whys .n.doubt{ background:var(--warn-bg); color:var(--warn); }
+/* 她读这一段的录音：这次的一条在前，同一段更早读过的跟在后面 */
+.diff .d .plays{ display:flex; flex-direction:column; gap:6px; margin-top:4px; align-self:stretch; }
+.diff .d .play{ display:flex; align-items:center; gap:10px; min-width:0; }
+.diff .d .play .pl{ flex:0 0 auto; font-size:.8rem; color:var(--ink-soft); min-width:4.8em; }
+.diff .d .play.now .pl{ color:#B4442A; font-weight:700; }
+.diff .d .play audio{ flex:1 1 auto; min-width:0; width:100%; height:36px; }
+.diff .d .play.std .pl{ color:#1F7A55; font-weight:700; text-decoration:none; }
+.diff .d .play.goal .pl{ color:#1F7A55; font-weight:700; }
+.diff .d .play.goal .gt{ font-size:.85rem; color:var(--ink-soft); }
+.diff .d .play.goal .gt b{ color:#1F7A55; }
+/* 读得好的地方：每一句底下那两条，版式同段落卡 */
+.plays.hl{ display:flex; flex-direction:column; gap:6px; margin:2px 0 14px; }
+.plays.hl .play{ display:flex; align-items:center; gap:10px; min-width:0; }
+.plays.hl .play .pl{ flex:0 0 auto; font-size:.8rem; color:var(--ink-soft); min-width:4.8em; }
+.plays.hl .play.std .pl{ color:#1F7A55; font-weight:700; }
+.plays.hl .play.now .pl{ color:#B4442A; font-weight:700; }
+.plays.hl .play audio{ flex:1 1 auto; min-width:0; width:100%; height:36px; }
+@media print{ .diff .d .plays, .plays.hl{ display:none; } }
+ins{ background:var(--chinese-bg); color:#B4442A; text-decoration:none;
+     border-radius:5px; padding:0 3px; font-weight:700; }
+mark{ background:var(--math-bg); color:#1F7A55; border-radius:5px; padding:0 3px; }
+
+/* 磕巴、亮点、斜线版共用 */
+.text{ font-family:var(--font-display); font-size:1.02rem; line-height:2.1; }
+.text .sl{ color:var(--english); font-weight:800; padding:0 3px; }
+.note-soft{ color:var(--ink-soft); font-size:.9rem; margin:12px 0 0; }
+
+.todo{ display:flex; flex-direction:column; gap:12px; }
+.todo .t{
+  background:var(--card); border:1.5px solid var(--line); border-radius:16px;
+  box-shadow:0 2px 0 var(--line); padding:14px 16px;
+  display:flex; gap:12px; align-items:flex-start;
+}
+.todo .t .ic{
+  flex:0 0 auto; width:34px; height:34px; border-radius:12px; display:grid; place-items:center;
+  background:var(--english-bg); font-size:1.05rem;
+}
+.todo .t p{ margin:0; }
+.todo .t .h{ font-weight:600; }
+.todo .t .d2{ font-size:.88rem; color:var(--ink-soft); margin-top:2px; }
+
+/* 下次读之前：给孩子看的，字大、字少 */
+.problem{ text-align:center; }
+.problem p{ margin:0; }
+.problem .pm{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px 10px; }
+.problem .pi{ font-size:2rem; line-height:1; }
+.problem .pm b{ font-size:1.5rem; color:var(--english); }
+.problem .ask{ flex-basis:100%; color:var(--ink-soft); font-size:.9rem; }
+.problem .todo1{ margin-top:12px; font-size:1.15rem; font-weight:700; }
+.problem .ws{ margin-top:14px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+.problem .w{ font-family:var(--font-display); font-size:1.35rem; font-weight:700;
+  background:var(--english-bg); border-radius:12px; padding:6px 14px;
+  display:flex; flex-direction:column; align-items:center; }
+.problem .w small{ font-family:var(--font-cn); font-size:.85rem; font-weight:400; color:var(--ink-soft); }
+.problem .pc{ margin-top:14px; font-size:.9rem; color:var(--ink-soft); }
+.problem .pc b{ color:var(--ink); font-size:1.05rem; }
+
+.how{ font-size:.86rem; color:var(--ink-soft); }
+.how p{ margin:0 0 8px; }
+.how p:last-child{ margin-bottom:0; }
+.how b{ color:var(--ink); }
+
+.back{
+  display:inline-block; margin-top:34px; font-family:var(--font-display);
+  font-weight:700; text-decoration:none; color:var(--ink-soft);
+}
+.foot{ text-align:center; color:var(--ink-soft); font-size:.85rem; margin-top:40px; }
+
+@media (max-width:520px){
+  .stats{ grid-template-columns:repeat(2,1fr); }
+  /* 窄屏放不下一整行时，让**标签**换到下一行右侧，别去压「92.3% → 93.9%」——
+     压它会把一个数字劈成两行。`min-width:max-content` 就是不许压的意思 */
+  .cmp .r{ flex-wrap:wrap; row-gap:4px; }
+  .cmp .r .v{ min-width:max-content; }
+  .cmp .r .d{ margin-left:auto; }
+}
+@media print{
+  body{ background:#fff; }
+  .box,.stat,.diff .d,.todo .t{ box-shadow:none; }
+  .back{ display:none; }
+}
+
+/* ── 一次录音跨了几页时的小表 ────────────────────────────
+   颗粒度是**一次录音**，不按页拆成几份报告。这张表只是标注：
+   哪几页、各自多少词、错几处 —— 数字由喂数据台从同一份对齐里派生。
+
+   两列：左边页码固定宽，右边明细自己撑。手机上右列会换行，
+   左列不跟着缩（`auto` 而不是 `min-content`），一列页码对齐才看得出是一张表。 */
+.pg .row{
+  display:grid; grid-template-columns:auto 1fr; gap:4px 12px;
+  padding:7px 0; border-bottom:1px solid var(--line);
+}
+.pg .row:last-of-type{ border-bottom:0; }
+.pg .row b{
+  font-family:var(--font-display); font-weight:800; color:var(--ink);
+  white-space:nowrap;
+}
+.pg .row span{ color:var(--ink-soft); font-size:.9rem; line-height:1.5; }
+.pg-note{
+  margin:10px 0 0; padding-top:10px; border-top:1px solid var(--line);
+  color:var(--ink-soft); font-size:.88rem; line-height:1.7;
+}

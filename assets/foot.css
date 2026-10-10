@@ -1,0 +1,16 @@
+/* ── 站点页脚（备案号 + 访问统计）───────────────────────────
+   文案和开关在 lib/site.py，这里只管长相。page.py 在挂页脚时
+   顺带把这个文件引上，所以不用在各栏目的 css 列表里写它。
+   打印时自己隐藏 —— 报告页没引 print.css，指望不上它的 .screen-only。 */
+
+.site-foot{
+  max-width: 860px; margin: 26px auto 30px; padding: 0 16px;
+  font-family: var(--font-cn); text-align: center; line-height: 1.7;
+}
+.site-foot p{ margin: 0; }
+.site-foot .beian{ font-size: 12.5px; color: var(--ink-soft); }
+.site-foot .beian a{ color: inherit; text-decoration: none; }
+.site-foot .beian a:hover{ text-decoration: underline; }
+.site-foot .hits{ margin-top: 3px; font-size: 11.5px; color: var(--ink-soft); opacity: .75; }
+
+@media print{ .site-foot{ display: none !important; } }

@@ -1,0 +1,250 @@
+/* ── 教材总览（语文）───────────────────────────────────────
+   一册一份的总表：每课一行，背诵 / 默写两列上底色加圆点，一眼扫得出
+   哪几行有活儿。依赖 palette.css + print.css。
+
+   **纸上是 A4 横版**（课程表也是横版，覆盖法跟它一致）：7 列表格竖着放，
+   「其他要求」那列只剩 73mm ≈ 17 字一行，课后题原话被挤成一条窄河、
+   一行折 5~7 行。横过来同一列有 123mm ≈ 32 字，折 2~3 行就完了 ——
+   **这张表宽而不高，横版才是它的形状**。
+
+   **同一份 HTML 两用**：纸上是 A4 横版打印单（一页一个 .sheet），屏幕上是速查页
+   —— 手机窄，所以表格在 .scroll 里横滚、字号再放大一档（只在 @media screen 里改）。
+
+   ⚠️ **正文是 14px（五号 = 10.5pt），这也是字号下限，不许为了少印几页往下调。**
+   这张表是给孩子和家长在书桌上扫的，字小了就不看了。
+   **页数是结果，不是目标**：内容多就多印一页。
+
+   **一单元一页**（换页点在 spec 的 `[分页]` 里）：页 = 单元，跟着课本的结构走，
+   不跟着「这一页还能塞几行」走。所以**行高保持自然、表格不拉伸撑满** ——
+   八页的行高一致，翻起来才对得上；单元行数少的那页（第五单元只有两课）
+   页底就是留白，那是结构留的白，不是排版没排满。
+
+   ⚠️ 因此 `.scroll` 不许写 `flex:1`、`table` 不许写 `height:100%`
+   （试过：拉伸撑满会把两行的那页摊成两个巨大的空格子）。
+
+   **配色不走语文橙，走老站那套蓝 / 红 / 绿**（取值在 palette.css 的 `--ov-*`）：
+   蓝管结构（表头、课号、摘要框），红管「有活儿」（要背 / 要默写的格子），
+   绿管语文园地那几行。这张表的全部用处就是扫出哪几行有活儿 —— 橙底和语文的
+   三科色是同一支，底色和字色撞在一起就扫不出来了。
+
+   排不下先动列宽（`td.other` 挤了就从 recite / copy / read 那几列匀），
+   **别动字号和行距**。改完 Read 生成的 PDF，**每一页都要看**：
+   有没有哪个单元超出一页、行高有没有跑偏。 */
+
+body{
+  margin: 0;
+  font-family: var(--font-cn);
+  color: #111;
+  font-size: 14px;              /* 五号。全表的字号下限，见文件头 */
+  background: #888;             /* 屏幕上模拟纸外的桌面 */
+}
+@media print{ body{ background: #fff; } }
+
+/* ── A4 横版 ───────────────────────────────────────────────
+   print.css 那份 @page 是竖版（全站打印单共用），这一份覆盖成横版。
+   **顺序有讲究**：page.render 里 css=("print.css","overview.css")，
+   这一份在后面才盖得住 —— 别把顺序调过来。 */
+@page{ size: A4 landscape; margin: 0; }
+.sheet{
+  display: flex;
+  flex-direction: column;
+  width: 297mm;
+  min-height: 210mm;
+  padding: 11mm 14mm;
+  background: #fff;
+}
+@media print{
+  html, body{ width: 297mm; }
+  /* 纸上是**固定** height，不是 min-height：min-height 下内容一超（某个单元的
+     课后题多折了一两行）盒子就跟着长高，页脚被挤到下一页去，PDF 里多出一张
+     只印着页码的白纸。固定高度不会长，超出的部分留给 `make fit` 报出来 ——
+     抽查单也是这么写的 */
+  .sheet{ width: 297mm; height: 210mm; }
+}
+
+/* ── 页头 ── */
+.head{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid #111;
+  padding-bottom: 5px;
+  margin-bottom: 3mm;
+}
+/* h1（含册名 small）+ info 挤不进一行（竖版 182mm 时量出来的，横版也照此排）。
+   不许换行的话册名会在「（全册」后面断开、「27 课）」孤零零占一行 ——
+   所以 h1 整条占一行、info 掉到第二行贴右 */
+.head h1{ flex: 1 1 100%; }
+.head .info{ margin-left: auto; }
+.head h1{ font-size: 20px; margin: 0; padding-right: 10px; }
+.head h1 small{ font-size: 13px; font-weight: 400; color: #666; }
+.head .info{ font-size: 12px; color: #666; white-space: nowrap; }
+.head .info b{ color: var(--ov-blue); }
+
+/* ── 顶部摘要框：手机上第一屏就看到「要背的只有 3 处」── */
+.sum{
+  border: 1.2px solid var(--ov-line);
+  border-radius: 5px;
+  background: var(--ov-blue-soft);
+  padding: 4px 9px;
+  margin-bottom: 2mm;
+}
+/* 横版有 269mm，摘要和小结都分两栏 —— 单栏时一条能排 63 个字，眼睛从行尾
+   回到行首要横扫大半张纸；分两栏还把第一页 / 末页各省下 40~60px
+   （末页原先 5 行加小结超出 52px，就是这么塞回去的） */
+.sum ul{ list-style: none; margin: 0; padding: 0; column-count: 2; column-gap: 9mm; }
+.sum li{ display: flex; gap: 9px; font-size: 13px; line-height: 1.8; break-inside: avoid; }
+.sum li b{ flex: 0 0 auto; color: var(--ov-blue); white-space: nowrap; }
+.sum li span{ color: #333; }
+
+.note{ font-size: 12px; color: #999; margin: 0 0 2mm; }
+
+/* ── 总表 ── */
+/* 表格按内容取高，**不撑满**：一单元一页，行高得在八页之间一致（见文件头）。
+   页底剩下的空白由 .foot 的 margin-top:auto 顶着页码钉在底边。
+
+   ⚠️ **table-layout 必须 fixed**：auto 布局下 td 的 width 只是建议值，
+   `《黄鹤楼送孟浩然之广陵》李白` 这种长词会把 recite 列撑宽、从 other 那儿
+   抢走十几毫米，于是「其他要求」多折一两行、整页高度全变
+   （量出来的：同一段 80 字的课后题，auto 下比 fixed 多折一行）。 */
+.scroll{ flex: 0 0 auto; }
+table{ width: 100%; table-layout: fixed; border-collapse: collapse; }
+/* 行距是舒展的来源（横版之前是 1.4，一格里 5~7 行文字堆在一起）。
+   字号从小四降到五号之后行的绝对高度也跟着矮了，所以行距从 1.7 提到 1.85 ——
+   14px × 1.85 ≈ 26px，和原先 16px × 1.7 的观感一样。
+   页高够用（最挤的第八单元那页也还剩 150px 上下），别再往回收 */
+th, td{ border: .6pt solid var(--ov-line); padding: 6px 7px; vertical-align: middle; }
+thead th{
+  background: var(--ov-blue-bg);
+  color: var(--ov-blue);
+  font-size: 13px;
+  white-space: nowrap;
+}
+/* 列宽：横版可用宽 269mm，前六列共 124mm、other 吃剩下的 145mm。
+   减掉左右 padding（7px×2 ≈ 3.7mm），other 的文字宽 119mm ≈ 32 字/行。
+   **行高几乎全由 other 折几行定**（14px 的汉字宽 3.7mm），前六列折 2~3 行
+   没关系，反正比 other 那一格矮。竖版时 other 只有 73mm、折 5~7 行，
+   那是改横版的直接原因 */
+/* 列宽（table-layout:fixed 只认这里）：前六列共 146mm、other 吃剩下的 123mm。
+   **other 短一档更好读**：145mm 是 38 字一行，眼睛从行尾回到行首要横扫大半张
+   纸；123mm ≈ 32 字。匀出来的 22mm 给了前面几列 —— 课文名和背诵 / 默写那几格
+   原先折得很碎（`《黄鹤楼送孟浩然之广陵》李白` 4 行、`《出塞》《夏日绝句》`
+   3 行），宽了之后都是 2 行 */
+.c-no{ width: 16mm; }           /* 「园地一」「读书吧」要能一行排下，别再缩 */
+.c-name{ width: 34mm; }         /* 16px 楷体 ≈ 7 字/行，最长的课文名折 2 行 */
+.c-recite{ width: 30mm; }
+.c-copy{ width: 26mm; }
+.c-read{ width: 24mm; }         /* 「反复朗读」4 字要能一行排下 */
+.c-write{ width: 16mm; }
+/* c-other 不写宽度 —— 剩下的都归它（123mm，文字宽 119mm ≈ 32 字/行） */
+
+td.no{
+  text-align: center;
+  color: var(--ov-blue);
+  font-weight: 700;
+  font-size: 13px;
+  font-family: "Times New Roman", var(--font-cn), serif;
+}
+td.name{ font-family: var(--font-kai); font-size: 16px; line-height: 1.5; color: #111; }
+td.read{ line-height: 1.6; }
+td.recite{ line-height: 1.6; }
+td.copy{ line-height: 1.6; }
+/* other 列字最多，行高基本由它定。**14px（五号）是字号下限、1.85 是行距** ——
+   要少印一页就从别的列匀宽度给它，别动这两个数。
+   一页装几行、换页点挑在哪儿：`make fit URL=…` 量，写进 spec 的 [分页] */
+td.other{ font-size: 14px; color: #333; line-height: 1.85; }
+td.write{ text-align: center; font-size: 13px; color: #555; }
+
+/* 要背 / 要默写：淡红底 + 红字 + 红圆点，一眼扫得出哪几行有活儿。
+   红在这个栏目是有意的例外，为什么见 palette.css 的 --ov-* 那一段 */
+.on{ background: var(--ov-red-bg); color: var(--ov-red); font-weight: 700; }
+.on i{ font-style: normal; margin-right: 2px; color: var(--ov-red); }
+.off{ color: #C4C4C4; }
+.todo{ color: #999; }
+/* 不是课文的行（语文园地 / 快乐读书吧）：底色略淡，课号和「日积月累」转绿 ——
+   绿是这张表里「这行不是课文」的唯一标记，别改成灰（灰和 off 的占位符撞） */
+tr.aside{ background: var(--ov-aside-bg); }
+tr.aside td.no, tr.aside td.name{ color: var(--ov-green); }
+
+/* ── 底部小结 ── */
+/* 小结钉在第八单元那页的表格下面 —— 那一页是全册最挤的一页
+   （5 行都有三行长的课后题，页底还要钉这一块）。`make fit` 会逐页报溢出，
+   五号字下那页还剩 150px 上下，宽松 */
+.tail{
+  margin-top: 3mm;
+  padding-top: 2mm;
+  border-top: 1.5px dashed var(--ov-line);
+}
+/* 小结两栏，栏间一条淡线。
+   ⚠️ **别指望分栏能压高度**：这一块的高度被最长那条（多音字清单 90 字）主宰，
+   栏一窄它就多折几行，两栏三栏量出来都是 145px。分栏是为了少横扫半张纸，
+   不是为了省空间 —— 要省得从别处省（踩过：为了 20px 试到三栏，高度一点没动） */
+.tail ul{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  column-count: 2;
+  column-gap: 8mm;
+  column-rule: 1px solid var(--ov-line);
+}
+/* **每条必须有抬头**（spec 里的 `抬头 | 详情`）—— 五条各是一整段话、同一个
+   字色同一个粗细的时候，页底这一块谁也读不下去。抬头蓝色加粗当锚点，
+   详情压到 #333（原先 #444 的灰在 13px 上偏淡），条间留 1.6mm 喘气。
+   抬头左边那个小方块是条目的起点，比原先的「·」实、也不占一个字宽 */
+.tail li{
+  break-inside: avoid;
+  font-size: 13px;
+  color: #333;
+  line-height: 1.75;
+  margin-bottom: 1.6mm;
+  padding-left: 3.6mm;
+  text-indent: -3.6mm;          /* 折行对齐到抬头，不跑到方块底下 */
+}
+.tail li:last-child{ margin-bottom: 0; }
+.tail li::before{
+  content: "";
+  display: inline-block;
+  width: 1.4mm;
+  height: 1.4mm;
+  margin-right: 2.2mm;
+  vertical-align: 0.4mm;
+  background: var(--ov-blue);
+}
+.tail li b{ color: var(--ov-blue); margin-right: 2mm; font-weight: 700; }
+
+/* 页码钉在页底：表格不撑满了，页底那块留白归它顶着。
+   **别把 margin-top:auto 同时给 .tail 和 .foot** —— 两个 auto 平分剩余空间，
+   小结会飘到页面中间去 */
+.foot{ margin-top: auto; text-align: right; color: #999; font-size: 11px; }
+
+/* ── 屏幕：同一份 HTML 当速查页用 ──────────────────────────
+   宽表格自己横向滚动，别让整页横滚（.sheet 有 max-width:100%，
+   但里面 7 列的表格压不动 —— 内容会跑到纸外面去）。 */
+@media screen{
+  .scroll{ overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+/* 手机上纸宽被压到屏宽，纸上那档五号字（14px）在屏上偏小 —— 放大一档，
+   横滚着看。页头也得竖排：nowrap 的 .info 会把标题挤成一列竖着排
+   （「教 材 总 览」一个字一行，是在真实视口截图里看出来的）。 */
+@media screen and (max-width: 760px){
+  .head{ flex-direction: column; align-items: flex-start; gap: 3px; }
+  .head h1{ font-size: 21px; padding-right: 0; }
+  .head h1 small{ font-size: 14px; }
+  .head .info{ font-size: 13px; white-space: normal; }
+  table{ min-width: 760px; }
+  thead th{ font-size: 15px; }
+  td.no{ font-size: 15px; }
+  td.name{ font-size: 18px; }
+  td.recite, td.copy, td.read{ font-size: 15px; }
+  td.other{ font-size: 15px; }
+  td.write{ font-size: 15px; }
+  /* 摘要框在窄屏改上下排：一行两栏的话，nowrap 的标题占掉半个屏宽，
+     详情只剩 6 个字一行、挤成一条竖河（真实视口截图里看出来的） */
+  /* 摘要框在窄屏回一栏、改上下排：两栏的话每栏只剩 8 个字；
+     一行两栏的话 nowrap 的标题占掉半个屏宽，详情挤成一条竖河 */
+  .sum ul, .tail ul{ column-count: 1; }
+  .sum li{ font-size: 14px; flex-direction: column; gap: 2px; }
+  .note{ font-size: 13px; }
+  .tail li{ font-size: 14px; }
+}

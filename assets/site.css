@@ -1,0 +1,360 @@
+/* ── 站点页面（入口页 / 各科目录页）────────────────────────
+   打印单不用这一份，它们走 print.css + grid.css。
+   依赖 palette.css。 */
+
+*{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html{ -webkit-text-size-adjust: 100%; }
+
+body{
+  margin: 0;
+  min-height: 100svh;
+  font-family: var(--font-cn);
+  color: var(--ink);
+  line-height: 1.7;
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(60% 50% at 88% -5%, rgba(238,125,91,.10), transparent 70%),
+    radial-gradient(55% 45% at -8% 8%,  rgba(62,155,214,.10), transparent 70%),
+    radial-gradient(50% 40% at 50% 110%, rgba(69,185,136,.08), transparent 70%),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 26px 26px, 26px 26px;
+  background-attachment: fixed, fixed, fixed, scroll, scroll;
+}
+
+.wrap{
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 30px 18px calc(28px + var(--safe-b));
+}
+
+/* ── 页头 ── */
+.hero{ text-align: center; margin-bottom: 26px; }
+.eyebrow{
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: .72rem;
+  letter-spacing: .18em;
+  color: var(--ink-soft);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 13px;
+  background: var(--card);
+}
+.hero h1{
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 7vw, 2.2rem);
+  margin: 12px 0 4px;
+  line-height: 1.25;
+}
+.hero .sub{ color: var(--ink-soft); margin: 0; font-size: .92rem; }
+/* 页头的缺口提示（打卡评价的目录页和趋势页共用）：哪几天有作业、还没有成绩单。
+   **虚线是「缺口」的视觉语言** —— 列表里那几块、趋势表里那几行都是虚线，
+   一眼认得出是同一件事。不给红：红专属「分数越差越红」，缺一份不是考差了 */
+.hero .miss{
+  display: inline-block; margin: 9px 0 0;
+  font-size: .8rem; line-height: 1.6; color: var(--ink-soft);
+  padding: 7px 12px; border: 1.5px dashed var(--line); border-radius: 10px;
+}
+.hero .miss b{ color: var(--ink); }
+
+/* ── 学期倒计时（hero 下面并排两条）─────────────────────────
+   数字由 assets/countdown.js 按打开那天重算（为什么，见那个文件）。
+   色走**琥珀** `--warn`：分类色给三科占着、红专属分数，这两条既不是学科
+   也不是成绩 —— 琥珀在这套色板里就一个意思：留神时间。
+
+   **窄屏上也并排、不折成上下两行**：两个日子挨着才看得出「先考哪个、
+   再往后是哪个」，拆成两行就成了两条不相干的通知。所以靠 flex 平分宽度，
+   窄的时候缩字号，不 wrap。过期那条被 JS 收起来后，剩下的自动撑满整行。 */
+.counts{ display: flex; gap: 11px; margin: 0 0 15px; }
+.count{
+  flex: 1;
+  min-width: 0;
+  display: grid;            /* 三行：名字 / 天数 / 日期 */
+  margin: 0;
+  padding: 10px 13px 11px;
+  background: var(--warn-bg);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 3px 0 var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.count::before{           /* 左侧色条，和学科卡片同一套形状 */
+  content: "";
+  position: absolute;
+  left: 0; top: 11px; bottom: 11px;
+  width: 5px;
+  border-radius: 0 4px 4px 0;
+  background: var(--warn);
+}
+/* 日子过了 countdown.js 会把整条 `hidden` 掉。**必须显式写这一条** ——
+   `[hidden]` 的 UA 样式是 display:none，但上面 .count 自己写了 display:grid，
+   同一个属性、后来的规则赢，光设 hidden 属性收不起来（踩过：过期那条还挂着 -1 天） */
+.count[hidden]{ display: none; }
+.count .what{ font-size: .88rem; font-weight: 600; }
+.count .soon{           /* 「暂定」：日期是推的、学校还没通知 */
+  margin-left: 5px;
+  font-style: normal;
+  font-size: .66rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+.count .left{ line-height: 1.15; }
+.count .num{
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  letter-spacing: -.02em;
+}
+.count .unit{ font-size: .9rem; margin-left: 3px; }
+/* 「就在明天 / 就是今天」那两天数字是收起来的，那 3px 的字距也跟着撤 ——
+   不撤的话这行比上下两行各多缩进一点，看着像没对齐 */
+.count .num[hidden] + .unit{ margin-left: 0; }
+.count .when{ font-size: .74rem; color: var(--ink-soft); }
+
+/* ── 学科卡片 ── */
+.subjects{ display: grid; gap: 15px; }
+
+.subj{
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 3px 0 var(--line);
+  padding: 17px 18px 8px;
+  position: relative;
+  overflow: hidden;
+}
+.subj::before{           /* 左侧学科色条 */
+  content: "";
+  position: absolute;
+  left: 0; top: 17px; bottom: 17px;
+  width: 5px;
+  border-radius: 0 4px 4px 0;
+  background: var(--c);
+}
+.subj[data-s="chinese"]{ --c: var(--chinese); --c-bg: var(--chinese-bg); }
+.subj[data-s="english"]{ --c: var(--english); --c-bg: var(--english-bg); }
+.subj[data-s="math"]   { --c: var(--math);    --c-bg: var(--math-bg); }
+/* 课程表不是学科，用「新分类先用这个」那支紫，别去挤三科色 */
+.subj[data-s="schedule"]{ --c: var(--c-drill); --c-bg: var(--c-drill-bg); }
+
+.subj h2{
+  font-family: var(--font-display);
+  font-size: 1.06rem;
+  margin: 0 0 3px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.subj h2 .emo{ font-size: 1.3rem; line-height: 1; }
+.subj h2 .cnt{
+  margin-left: auto;
+  font-family: var(--font-cn);
+  font-size: .72rem;
+  font-weight: 400;
+  color: var(--c);
+  background: var(--c-bg);
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+.subj .note{ color: var(--ink-soft); font-size: .82rem; margin: 0 0 10px; }
+
+/* ── 栏目列表 ── */
+.subj ul{ list-style: none; margin: 0; padding: 0; }
+.subj li{ border-top: 1.5px solid var(--line); }
+
+.subj li > a,
+.subj li > span{
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 11px 2px;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: .96rem;
+}
+.subj li > a{ transition: color .12s ease; }
+.subj li > a:active{ color: var(--c); }
+.subj li > a::after{
+  content: "›";
+  margin-left: auto;
+  color: var(--c);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.subj li small{
+  color: var(--ink-soft);
+  font-size: .78rem;
+  font-weight: 400;
+}
+
+/* 未做的栏目：灰显 + soon 角标，点不动 */
+.subj li > span{ color: var(--ink-soft); cursor: default; }
+.subj li > span::after{
+  content: "待做";
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: .68rem;
+  color: var(--ink-soft);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 0 8px;
+  line-height: 1.5;
+  flex: 0 0 auto;
+}
+
+/* ── 页脚 ── */
+.foot{
+  margin: 26px 0 0;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: .76rem;
+  line-height: 1.7;
+}
+
+/* 入口页的「构建于 …」和下面的备案号是同一块页脚的两行，中间不该有
+   wrap 的 28px 内边距 + site-foot 的 26px 上边距，加起来 66px。
+   只收紧「最后一项就是 .foot 的 wrap」—— 目录页最后是一整块带边框的卡片，
+   那圈留白是对的，别一起改。不支持 :has 的浏览器忽略这两条，退回原样，不会坏。 */
+.wrap:has(> .foot:last-child){ padding-bottom: 0; }
+.wrap:has(> .foot:last-child) + .site-foot{ margin-top: 5px; }
+
+
+/* ══════ 栏目目录页 ══════ */
+
+/* 返回链接靠左，别跟着 .hero 的居中走 */
+.hero .back{
+  display: block;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: .82rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  margin-bottom: 6px;
+}
+.hero .back:active{ color: var(--ink); }
+
+/* 分区小标题：一个栏目里有几类单子时用（KET 的合集 / 抽选卷 / 分主题） */
+.sec{
+  font-family: var(--font-display);
+  font-size: .82rem;
+  color: var(--ink-soft);
+  margin: 22px 4px 8px;
+  font-weight: 700;
+}
+.sec:first-of-type{ margin-top: 0; }
+
+.list{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 3px 0 var(--line);
+  overflow: hidden;
+}
+/* 左边一行内容 + 右边一到两个按钮（「家长版」「打印单」）。
+   原先是两列 grid，右边按钮**数量可变**之后换成 flex —— grid 的空轨道
+   仍旧吃一份 gap，只有一个按钮的栏目会白多 8px；flex 的 gap 只落在
+   真正相邻的两个元素之间。左列可收缩靠 .main 的 flex:1 1 auto + min-width:0
+   （原先是 minmax(0,1fr) 在管），窄屏上 small 照旧自己换行。 */
+.list li{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;      /* 左边这 13px 是给字标的；没字标的栏目由 .main 的
+                           padding-left 补回来，总左边距还是原来的 17px */
+}
+.list li + li{ border-top: 1.5px solid var(--line); }
+
+/* 最左边那个字标（只有背诵单传：要默写的红「默」，只要背的黑「背」）。
+   一眼扫下来哪几课要默写 —— 写在 small 里那句「要默写」得读完一行小字才看见。
+   红用的是**教材总览那条例外的同一支红**（`--ov-red`，专管「要背 / 要默写」），
+   不是新引一支：分类色里仍旧没有红，红也仍旧只有「分数越差越红」和这一个用法。 */
+.list .tag{
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  font-size: .84rem;
+  font-weight: 700;
+  color: var(--ink);
+  border: 1.5px solid var(--line);      /* 描边 chip，和 hero 的 .eyebrow 同一套 */
+  background: var(--card);
+}
+/* 要默写的那几课：**红字红底**，比黑「背」重一档 —— 这一列扫下来，
+   眼睛先落在要默写的行上，那正是这个字标的用处 */
+.list .tag.copy{
+  color: var(--ov-red);
+  background: var(--ov-red-bg);
+  border-color: var(--ov-red-bg);
+}
+/* .tag.recite（黑「背」）走上面的默认色，不用再写一条 */
+
+/* 整行：点进网页版 */
+.list .main{
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+  padding: 14px 4px 14px 4px;   /* 左边那 13px 在 .list li 上（给字标留的位） */
+  text-decoration: none;
+  color: var(--ink);
+  font-size: .98rem;
+}
+.list .main small{
+  color: var(--ink-soft);
+  font-size: .78rem;
+}
+
+/* 按课分组（每日打卡）：课号在最左边跨行占一格，右边是这一课那几天。
+   .grp 本身也是 .list 的 li —— 把 li 那套 flex / padding 收回来，交给里面的 .rows li */
+.list.grouped > .grp{ display: flex; align-items: stretch; padding: 0; gap: 0; }
+.list.grouped .les{
+  flex: 0 0 52px;
+  display: grid;
+  place-items: center;
+  border-right: 1.5px solid var(--line);
+  background: var(--c-read-bg);
+  color: var(--c-read);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .95rem;
+  text-decoration: none;
+}
+/* 隔一组换一个底色，相邻两课分得开。两支都是暖色（超8 的橙 / 页面同族的米金），
+   深浅错开一档就够分 —— 换成冷色反差是大，但整张列表就花了 */
+.list.grouped > .grp:nth-child(even) .les{ background: var(--bonus-bg); color: var(--bonus); }
+a.les:active{ background: var(--c-read); color: #fff; }
+.list.grouped > .grp:nth-child(even) a.les:active{ background: var(--bonus); color: #fff; }
+.list.grouped .rows{ flex: 1 1 auto; min-width: 0; list-style: none; margin: 0; padding: 0; }
+
+/* 右侧：直接拿 PDF 去打印 */
+.list .pdf{
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: .78rem;
+  text-decoration: none;
+  color: var(--accent, var(--chinese));
+  background: var(--accent-bg, var(--chinese-bg));
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.list .pdf:active{ background: var(--accent, var(--chinese)); color: #fff; }
+
+.list .empty{
+  padding: 16px 4px;      /* 左右各 13px 在 .list li 上 */
+  color: var(--ink-soft);
+  font-size: .9rem;
+}
