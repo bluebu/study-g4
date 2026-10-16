@@ -1,0 +1,155 @@
+/* 语文 · 学习方法。卡片给孩子看，底下那张表给大人。
+   页骨架（.wrap .hero .sec）走 site.css，这里只管主线、卡片和表。
+   颜色一律取 palette.css 的变量，**每个都带兜底值** —— palette.css 被浏览器缓存成
+   旧版时变量取不到，整块会变透明（踩过：右半张的浅金底整个没了，看着像白卡）。 */
+
+/* ── 右上角「打印版」按钮（只在屏幕上） ── */
+.mt .hero{ position:relative; }
+.mt .hero .pdf{
+  position:absolute; right:0; top:0;
+  font-size:.8rem; font-weight:600; color:var(--chinese, #EE7D5B); text-decoration:none;
+  background:#fff; border:1px solid var(--chinese-bg, #FBE0D5); border-radius:99px; padding:3px 12px;
+}
+
+/* ── 页头：五步主线 ── */
+.mt .flow{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px 6px; margin:0 0 14px; }
+.mt .flow span{
+  background:linear-gradient(180deg, #fff, var(--chinese-bg, #FBE0D5));
+  border:1px solid var(--line); border-radius:99px;
+  padding:4px 12px; font-size:.85rem; font-weight:600;
+  box-shadow:0 1px 0 var(--line);
+}
+.mt .flow span + span::before{ content:"→"; margin:0 6px 0 -3px; color:var(--chinese, #EE7D5B); font-weight:700; }
+
+/* ── 单元标题 + 单元页那句话 ── */
+.mt .sec{
+  display:flex; align-items:center; gap:10px;
+  margin:26px 0 4px; color:var(--chinese, #EE7D5B); font-size:1rem; letter-spacing:.08em;
+}
+.mt .sec::after{ content:""; flex:1; height:1.5px; background:linear-gradient(90deg, var(--chinese-bg, #FBE0D5), transparent); }
+.mt .motto{ margin:0 0 12px; font-family:var(--font-kai); font-size:.98rem; color:var(--ink-soft); }
+.mt .motto q{ quotes:"「" "」"; }
+.mt .motto small{ font-family:var(--font-cn); font-size:.75rem; margin-left:6px; white-space:nowrap; }
+
+/* ── 一课一张卡，一张一行：左 = 方法，右 = 一条常识 ── */
+.mt .card{
+  display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.1fr);
+  background:var(--card, #FFFDF8); border:1px solid var(--line); border-radius:18px;
+  box-shadow:0 1px 2px rgba(120,104,84,.08), 0 6px 18px -10px rgba(120,104,84,.35);
+  overflow:hidden; margin-bottom:14px;
+}
+.mt .card p{ margin:0; }
+.mt .lf{ padding:16px 14px 14px 16px; }
+
+.mt .mh{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.mt .mh .ic{
+  flex:0 0 auto; width:40px; height:40px; border-radius:50%;
+  display:grid; place-items:center; font-size:1.35rem; line-height:1;
+  background:var(--chinese-bg, #FBE0D5); box-shadow:inset 0 0 0 2px #fff;
+}
+.mt .mh b{ font-size:1.22rem; color:var(--chinese, #EE7D5B); letter-spacing:.02em; }
+.mt .mh .st{
+  font-size:.7rem; color:var(--ink-soft); white-space:nowrap;
+  background:#fff; border:1px solid var(--line); border-radius:99px; padding:1px 8px;
+}
+.mt .ask{
+  margin-top:12px !important; padding-left:10px; border-left:3px solid var(--chinese, #EE7D5B);
+  font-family:var(--font-display); font-size:1.1rem; font-weight:700; line-height:1.5;
+}
+.mt .story{ margin-top:8px !important; font-size:.84rem; line-height:1.75; color:var(--ink-soft); }
+.mt .from{ margin-top:8px !important; font-size:.72rem; color:var(--ink-soft); letter-spacing:.03em; }
+
+/* 语文园地：子栏目，一条一行，左右两半和上面的卡对齐（列宽同 .card） */
+.mt .tl{ grid-column:1 / -1; list-style:none; margin:0; padding:0; }
+.mt .tl li{
+  display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.1fr);
+  border-top:1px dashed var(--line);
+}
+.mt .tl b{
+  padding:10px 14px 10px 16px;
+  font-family:var(--font-kai); font-size:.98rem; font-weight:400; line-height:1.65;
+  color:var(--chinese, #EE7D5B);
+}
+.mt .tl b small{ display:block; margin-top:4px; text-align:right; font-family:var(--font-cn); font-size:.74rem; color:var(--ink-soft); }
+.mt .tl li > span{
+  padding:10px 14px; font-size:.85rem; line-height:1.75;
+  background:color-mix(in srgb, var(--bonus-bg, #FFF6DF) 70%, #fff);
+  border-left:1.5px dashed var(--bonus-line, #EBD7A6);
+}
+.mt .yd .mh .ic{ background:linear-gradient(135deg, var(--bonus-bg, #FFF6DF), var(--bonus-bg2, #FCE9B8)); }
+.mt .yd .mh b{ color:var(--ink); }
+
+/* ── 右半：一条常识（收藏卡：金色渐变、学科小牌、荧光笔名字、角落一颗星） ── */
+.mt .rt{
+  position:relative; padding:16px 14px 16px;
+  background:linear-gradient(150deg, var(--bonus-bg, #FFF6DF) 0%, var(--bonus-bg2, #FCE9B8) 100%);
+  border-left:1.5px dashed var(--bonus-line, #EBD7A6);
+}
+.mt .rt::after{
+  content:"✦"; position:absolute; right:10px; bottom:6px;
+  font-size:2.4rem; line-height:1; color:var(--bonus, #B8862B); opacity:.12; pointer-events:none;
+}
+.mt .in .badge{
+  display:inline-block; font-size:.7rem; font-weight:700; letter-spacing:.04em;
+  color:var(--bonus, #B8862B); background:#fff; border:1px solid var(--bonus-line, #EBD7A6);
+  border-radius:99px; padding:2px 9px; box-shadow:0 1px 0 var(--bonus-line, #EBD7A6);
+}
+.mt .in b{
+  display:block; margin-top:10px; font-size:1.12rem; line-height:1.4;
+  width:fit-content; padding:0 2px;
+  background:linear-gradient(transparent 58%, var(--bonus-hl, #F8DC8E) 58%);
+}
+/* 常识那段话分块：lead 这是什么 → 例子 / 实验小框 → take 落点。大段话孩子不看 */
+.mt .it{ position:relative; margin-top:8px !important; font-size:.86rem; line-height:1.75; color:var(--ink); }
+.mt .it.lead{ font-size:.9rem; font-weight:600; }
+.mt .it.take{ padding-left:1.2em; text-indent:-1.2em; color:var(--ink); }
+.mt .it.take::before{ content:"→ "; color:var(--bonus, #B8862B); font-weight:700; }
+.mt .box{
+  position:relative; margin-top:10px; padding:8px 10px 8px;
+  background:rgba(255,255,255,.72); border:1px solid var(--bonus-line, #EBD7A6); border-radius:10px;
+}
+.mt .box .bl{ display:block; font-size:.7rem; font-weight:700; color:var(--bonus, #B8862B); letter-spacing:.04em; }
+.mt .box p{ margin-top:3px !important; font-size:.84rem; line-height:1.7; }
+
+/* 窄屏上下叠 */
+@media (max-width: 359px){
+  .mt .card, .mt .tl li{ grid-template-columns:1fr; }
+  .mt .tl b small{ display:block; margin-top:4px; text-align:right; font-family:var(--font-cn); font-size:.74rem; color:var(--ink-soft); }
+.mt .tl li > span{ border-left:none; }
+  .mt .rt{ border-left:none; border-top:1.5px dashed var(--bonus-line, #EBD7A6); }
+}
+
+/* ── 页底：给家长 ── */
+.mt .tip{ font-size:.88rem; color:var(--ink-soft); line-height:1.8; margin:0 0 10px; }
+.mt .use{ width:100%; border-collapse:collapse; font-size:.88rem; background:var(--card, #FFFDF8); border-radius:14px; overflow:hidden;
+  box-shadow:0 1px 2px rgba(120,104,84,.08); }
+.mt .use td{ padding:9px 10px; border-top:1px solid var(--line); vertical-align:top; line-height:1.65; }
+.mt .use tr:first-child td{ border-top:none; }
+.mt .use td:first-child{ white-space:nowrap; font-weight:600; }
+
+/* ── A4 打印版（make pdf / CI 导出 methods.pdf）──────────────────────
+   同一份 HTML，纸上只换版式、不换内容。和别的打印单不一样的地方：
+   这张是**一路往下流的长文档**，所以边距写在 @page 上（每页都有），
+   不学 print.css 把边距写在 .sheet 的 padding 上 —— 那样只有第一页有上边距
+   （写字单踩过）。卡片整张不跨页，单元标题不落在页底。 */
+@page{ size:A4; margin:12mm 11mm; }
+@media print{
+  html, body{
+    width:auto; margin:0; padding:0;
+    background:#fff !important;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .mt.wrap{ max-width:none; width:auto; padding:0; }
+  .mt .hero{ margin-bottom:4mm; }
+  .mt .hero .back, .mt .hero .pdf{ display:none; }
+  .mt .hero h1{ font-size:1.7rem; margin:0; }
+  .mt .flow{ margin-bottom:2mm; }
+  .mt .sec{ margin-top:6mm; break-after:avoid; page-break-after:avoid; }
+  .mt .motto{ break-after:avoid; page-break-after:avoid; }
+  .mt .card{
+    break-inside:avoid; page-break-inside:avoid;
+    box-shadow:none; margin-bottom:4mm;
+  }
+  .mt .use tr{ break-inside:avoid; page-break-inside:avoid; }
+  .mt .use{ box-shadow:none; border:1px solid var(--line); }
+}

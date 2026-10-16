@@ -1,0 +1,33 @@
+/* ── 当天汇总条 ────────────────────────────────────────────
+   报告的颗粒度是一次录音，可平时想看的是「今天整体怎么样」。
+   目录页每个日期分组头上、以及日页的页眉里，都是这一条。
+   两处共用 src/templates/review/sum.html 那个宏，样式共用这一份 ——
+   目录页引 site.css + review-index.css，日页引 review.css，
+   谁也不包含谁，所以单独拆出来给两边都挂上。
+
+   涨跌只在「两天读的是同一本书」时才出 —— 换书就换了一把尺子，
+   拿两把尺子量出来的数相减没有意义（口径见 review.py 的 day_summary）。
+
+   flex + wrap：手机上自己折行，不用 media query。 */
+.sum{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 14px;
+  margin:-4px 4px 12px; font-size:.84rem; color:var(--ink-soft);
+}
+.sum b{
+  font-family:var(--font-display); font-weight:800; font-size:1rem;
+  color:var(--ink);
+}
+.sum i{
+  font-style:normal; font-weight:700; font-size:.76rem; margin-left:4px;
+}
+/* 和报告里「和上一页比」同一对色（palette.css 的 --up / --down） */
+.sum i.up{ color:var(--up); }
+.sum i.down{ color:var(--down); }
+.sum .mix{
+  font-size:.78rem; padding:2px 8px; border-radius:999px;
+  background:var(--english-bg); color:var(--english);
+}
+
+/* 日页的页眉是居中的（日期 + 副标题都居中），汇总条跟着居中。
+   目录页那边不居中 —— 它下面紧跟着左对齐的列表，居中会看着飘。 */
+.hero .sum{ justify-content:center; margin:8px 0 0; }
