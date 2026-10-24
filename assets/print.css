@@ -1,0 +1,69 @@
+/* ── A4 打印锁 ──────────────────────────────────────────────
+   这一份是三科打印单的共同地基，每一条都是踩过坑换来的，别删：
+
+   1) @page size:A4 + margin:0，边距写在 .sheet 上（用 mm）
+      不这么做的话，手机 / Epson 等会沿用屏幕窄宽度排版再缩放，
+      打出来是「移动布局」。
+   2) print-color-adjust: exact 必须留着
+      否则打印时田字格红线、四线格、色条全部消失。
+   3) .screen-only 屏幕可见、打印隐藏（返回链接、打印按钮）
+      .print-only  反之。 */
+
+/* ── 打印墨色 ────────────────────────────────────────────
+   **纸上的对比度要按黑白打印来定，不是按屏幕。** 色板里的分类色是给屏幕
+   挑的：`--c-drill` #A97EC4 转成灰度只有 146（中灰），`--chinese` #EE7D5B
+   是 154 —— 拿它画 1pt 的勾选框边框，激光黑白打出来一片糊。
+
+   所以打印单上「要拿笔画的东西」（勾选框、写字的横线、分隔线）一律走这几个
+   变量：灰度都压到 90 以下，彩色打印仍看得出是本栏目的色系。
+   改深浅只改这儿，**别去动 palette.css** —— 那儿的取值屏幕上还要用。
+
+   ⚠️ **粗细一律用 px，不要用 pt**：`1.2pt` 在屏幕上被 Chrome 压回 1px
+   （计算值量出来就是 1px），只有打印时才是 1.6px —— 于是「屏幕上看着很淡、
+   以为没改上」。px 两边一致，1px 打印约 0.26mm、2px 约 0.53mm。 */
+:root{
+  --ink-box:  #3A3A3A;   /* 勾选框、圆圈的边框（灰度 58） */
+  --ink-line: #555555;   /* 写字的横线（灰度 85） */
+  --ink-rule: #C4C4C4;   /* 行与行之间的分隔虚线（浅，但比 rgba 的 .16 实） */
+
+  --w-box:  2px;         /* 勾选框边框粗细 */
+  --w-line: 1.2px;       /* 写字的横线粗细 */
+}
+
+@page { size: A4; margin: 0; }
+
+.sheet{
+  width: 210mm;
+  margin: 0 auto;
+  background: #fff;
+  box-sizing: border-box;
+  padding: 14mm 12mm;
+}
+
+@media print{
+  html, body{
+    width: 210mm;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .sheet{
+    width: 210mm;
+    max-width: none;
+    box-shadow: none;
+    page-break-after: always;
+  }
+  .sheet:last-child{ page-break-after: auto; }
+  .screen-only{ display: none !important; }
+}
+
+@media screen{
+  .print-only{ display: none !important; }
+  .sheet{
+    max-width: 100%;
+    box-shadow: 0 2px 12px rgba(74,63,54,.12);
+    margin-bottom: 18px;
+  }
+}

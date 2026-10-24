@@ -1,0 +1,179 @@
+/* 朗读趋势页 —— 两条曲线 + 一张全量数据表。
+   数据来自 storage/result/english/review.csv（result 层），页面自己不算任何指标。
+   骨架（.wrap / .hero / .back）复用 site.css，这儿只加图区和表。 */
+
+.chart{ --pad: 16px; }
+
+.chart{
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: var(--pad);
+  margin-bottom: 16px;
+}
+.chart h2{
+  margin: 0 0 4px;
+  font-size: 1rem;
+  letter-spacing: .01em;
+}
+.chart .note{
+  margin: 0 0 10px;
+  color: var(--ink-soft);
+  font-size: .78rem;
+  line-height: 1.55;
+}
+.chart .note:last-child{ margin: 10px 0 0; }
+.chart .note code{
+  font-size: .95em;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--english-bg);
+}
+.chart svg{ display: block; width: 100%; height: auto; }
+
+/* 表在窄屏上横向滚，别把页面撑破 —— 打印单那条「零横向溢出」的规矩同样适用 */
+.scroll{ overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.tbl{
+  border-collapse: collapse;
+  width: 100%;
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.tbl th,
+.tbl td{
+  padding: 7px 10px;
+  border-bottom: 1.5px solid var(--line);
+  text-align: left;
+}
+.tbl th{
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: .76rem;
+}
+.tbl td.n{ text-align: right; font-variant-numeric: tabular-nums; }
+.tbl tbody tr:last-child td{ border-bottom: 0; }
+/* 分数列：越差越红，色由 figures.score_color() 算好塞进 --s */
+.tbl td.n[style*="--s"]{ color: var(--s); font-weight: 700; }
+
+/* 窄屏：8 列挤不下，把能从别处看到的三列收起来（词数 / 错 / 几词一停 ——
+   每页的报告里都有）。留下日期、页、准确率、WCPM、分数这五列。 */
+@media (max-width: 560px){
+  .tbl:not(.mon) th:nth-child(3), .tbl:not(.mon) td:nth-child(3),
+  .tbl:not(.mon) th:nth-child(4), .tbl:not(.mon) td:nth-child(4),
+  .tbl:not(.mon) th:nth-child(7), .tbl:not(.mon) td:nth-child(7){ display: none; }
+  .tbl th, .tbl td{ padding: 7px 6px; }
+}
+
+/* ── 先解决这三个 · 错在哪一类 ─────────────────────────────
+   两块都只用一层扁平结构：390px 上多一层缩进就要横向滚。 */
+.top3 { list-style: none; margin: 0; padding: 0; counter-reset: t3; }
+.top3 li {
+  counter-increment: t3;
+  padding: 10px 0 10px 30px;
+  border-top: 1px solid var(--line);
+  position: relative;
+}
+.top3 li::before {
+  content: counter(t3);
+  position: absolute; left: 0; top: 11px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--c-read); color: #fff;
+  font: 700 12px/20px var(--font-display); text-align: center;
+}
+.t3h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.t3k { font: 700 16px/1.3 var(--font-display); }
+.t3n { font-size: 13px; color: var(--ink-soft); }
+.t3t { font-size: 12px; padding: 1px 6px; border-radius: 4px; }
+.t3t.up   { background: color-mix(in srgb, var(--down) 14%, transparent); color: var(--down); }
+.t3t.down { background: color-mix(in srgb, var(--up) 14%, transparent);   color: var(--up); }
+.t3how { margin: 4px 0 0; font-size: 14px; }
+.t3w   { margin: 3px 0 0; font-size: 13px; color: var(--ink-soft); }
+.t3w code { font-size: 13px; }
+
+.kinds { list-style: none; margin: 0; padding: 0; }
+.kinds li { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+.kn { flex: 0 0 32px; }
+/* 灰条 = 累计占比，深条 = 最近几次的占比。深的盖在灰的上面，一眼看出涨没涨 */
+.kbar { flex: 1; height: 14px; background: var(--paper-2, #ece7de); border-radius: 3px; position: relative; overflow: hidden; }
+.kbar i, .kbar b { position: absolute; left: 0; top: 0; height: 100%; border-radius: 3px; }
+.kbar i { background: var(--line); }
+.kbar b { background: var(--c-read); opacity: .85; height: 7px; top: 7px; }
+/* nowrap + 够宽：390px 上「35 处 · 21.1%」会断成两行，八行里只有前五行断，
+   参差着看更乱。宽度按最长的那条（「35 处 · 21.1%」）量的 */
+.kv { flex: 0 0 94px; text-align: right; white-space: nowrap; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+/* 「全部数据」表里的缺口行：那天有点读作业、没有成绩单。
+   斜体 + 虚线上边框，扫表时一眼看出断在哪两次之间；
+   窄屏 media query 藏第 3/4/7 列时它是 colspan 的一整格，不受影响 */
+.tbl tr.gap td{
+  color: var(--ink-soft); font-style: italic;
+  border-top: 1.5px dashed var(--line); background: transparent;
+  /* .tbl 整体是 nowrap（数字列不许折），跨列这一格放开 —— 390px 上它得能折行，
+     不然整张表被撑出横向滚动 */
+  white-space: normal;
+}
+
+.chip{ display: inline-block; font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.chip.up{ background: var(--math-bg); color: var(--up); }
+.chip.down{ background: var(--chinese-bg); color: var(--down); }
+.chip.flat{ background: rgba(120,104,84,.08); color: var(--ink-soft); }
+.mon .chip{ display: block; width: max-content; margin: 3px 0 0 auto; }
+@media (max-width: 560px){
+  .mon th:nth-child(3), .mon td:nth-child(3){ display: none; }
+}
+
+/* 按课看：课号下面一行小字是故事名 */
+.tbl .story{ display:block; color:var(--ink-soft); font-size:.72rem; font-weight:400; white-space:nowrap; }
+
+/* 准确率 / WCPM 看哪一课：一排胶囊，选中的填色。只显示选中的那一份图
+   （哪一份对哪个单选框，那几条 :has 规则跟着课号生成，写在 trend.html 里） */
+.pick{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0 0 10px; }
+.pick .pk{ color:var(--ink-soft); font-size:.8rem; margin-right:4px; }
+.pick input{ position:absolute; opacity:0; pointer-events:none; }
+.pick label{
+  font-family:var(--font-display); font-size:.82rem; font-weight:700;
+  padding:4px 12px; border-radius:999px; cursor:pointer;
+  color:var(--c-read); border:1.5px solid var(--c-read-bg); background:var(--card);
+}
+.pick input:checked + label{ background:var(--c-read); border-color:var(--c-read); color:#fff; }
+.pick input:focus-visible + label{ outline:2px solid var(--c-read); outline-offset:2px; }
+.chart .pane{ display:none; }
+
+/* 按月看 / 按课看 底下那条评价：写给孩子的一两句，暖金底，第二句（下一步）淡一档 */
+.chart .say{
+  margin: 12px 0 0;
+  padding: 12px 14px 12px 40px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, var(--bonus-bg) 0%, var(--c-read-bg) 100%);
+  border: 1.5px solid var(--bonus-line);
+  position: relative;
+}
+.chart .say::before{ content: "🌱"; position: absolute; left: 12px; top: 11px; font-size: 1.1rem; }
+.chart .say p{ margin: 0; font-size: .95rem; line-height: 1.65; color: var(--ink); }
+.chart .say p + p{ margin-top: 4px; color: var(--ink-soft); font-size: .88rem; }
+.chart .say p.grade{
+  margin-top: 8px; padding: 8px 10px; border-radius: 10px;
+  background: rgba(255,255,255,.7); color: var(--ink); font-size: .9rem;
+}
+.chart .say p.grade + p{ margin-top: 8px; }
+.chart .say p.grade .goal{ display: block; margin-top: 6px; padding-top: 6px; border-top: 1.5px dashed var(--bonus-line); }
+.chart .say p.grade .goal b{ color: var(--c-read); }
+
+/* 目标卡：读《哈利·波特与魔法石》原文。和评价（暖金底）分开 —— 白底、描边、三根进度条 */
+.chart .hp{
+  margin: 12px 0 0; padding: 14px; border-radius: 14px;
+  background: var(--card); border: 1.5px solid var(--line);
+}
+.hp p{ margin: 0; }
+.hp-h{ font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
+.hp-lead{ margin: 4px 0 10px !important; font-size: .9rem; line-height: 1.6; color: var(--ink); }
+.hp-r + .hp-r{ margin-top: 10px; }
+.hp-k{ display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: .86rem; }
+.hp-k span{ color: var(--ink-soft); font-size: .8rem; }
+.hp-bar{ display: block; height: 8px; margin: 5px 0 3px; border-radius: 99px; background: rgba(120,104,84,.1); overflow: hidden; }
+.hp-bar i{ display: block; height: 100%; border-radius: 99px; background: var(--c-read); }
+.hp-r.done .hp-bar i{ background: var(--up); }
+.hp-gap{ font-size: .78rem; color: var(--c-read); }
+.hp-r.done .hp-gap{ color: var(--up); }
+.hp-src{ margin-top: 10px !important; font-size: .72rem; color: var(--ink-soft); line-height: 1.5; }
