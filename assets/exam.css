@@ -1,0 +1,135 @@
+/* ── 单元卷（语文）───────────────────────────────────────
+   一单元一张，题型照学校的随诊卷。一个 .sheet 一张 A4（spec 的 [分页]）。
+   依赖 palette.css + print.css + grid.css。
+
+   正文 15px、行距 2 —— 孩子要在括号和横线上写字，行距是给笔留的。
+   **括号空 / 横线空的宽度固定**（--pa / --bl / --bl-long），不跟着答案走：
+   线长随答案变，就等于把字数印在纸上了。
+   答案版的字走语文橙；卷子上那几个盒子是空的，宽度一模一样。 */
+
+body{
+  margin: 0;
+  font-family: var(--font-cn);
+  color: #111;
+  font-size: 15px;
+  background: #888;             /* 屏幕上模拟纸外的桌面 */
+}
+@media print{ body{ background: #fff; } }
+
+.sheet{
+  --cell: 10.5mm;
+  --pa: 2.2em;                  /* （　　）里留的宽度 */
+  --bl: 5em;                    /* 横线空 */
+  --bl-long: 9.5em;             /* 长横线空 */
+  display: flex;
+  flex-direction: column;
+  line-height: 1.65;
+  padding: 10mm 12mm 7mm;       /* 两页装十道题：上下边距比 print.css 的 14mm 收一点 */
+}
+@media print{ .sheet{ height: 297mm; } }
+
+/* ── 页头 ── */
+.head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid #111;
+  padding-bottom: 4px;
+  margin-bottom: 3mm;
+  line-height: 1.4;
+}
+.head h1{ font-size: 18px; margin: 0; padding-right: 10px; }
+.head h1 small{ font-size: 13px; font-weight: 400; color: #666; }
+.head .info{ font-size: 13px; white-space: nowrap; }
+.head .blank{ display: inline-block; border-bottom: 1px solid #111; width: 48px; }
+
+/* ── 大题 ── */
+.q{ margin-bottom: 2mm; }
+.q-h{ font-weight: 700; }
+.q-h .sc{ font-weight: 400; color: #555; }
+.t{ margin: 0; }
+.ans{ margin: 0; font-size: 13px; line-height: 1.7; color: var(--chinese); }
+.ans b{ font-weight: 400; }
+
+/* 加点字：点在字下面。不用 text-emphasis —— 它把点画在行框底下，
+   行距 1.65 时点离字有半行远，看着像是标在下一行上 */
+.dot{ font-style: normal; position: relative; }
+.dot::after{
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -.12em;
+  width: .2em; height: .2em;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+/* 括号空 / 横线空。盒子宽度固定，答案版的字在里面居中 */
+.pa, .bl{
+  display: inline-block;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.pa{ width: var(--pa); }
+.bl{ width: var(--bl); border-bottom: 1px solid #111; margin: 0 2px; }
+.bl.long{ width: var(--bl-long); }
+.bl.full{ width: calc(100% - 6em); }          /* 一整行：前面只留「针对内容：」这类标签 */
+.pa b, .bl b{ font-weight: 400; color: var(--chinese); font-family: var(--font-kai); font-size: 1.05em; }
+.bl.long b, .bl.full b{ font-size: 12px; font-family: var(--font-cn); }
+
+/* 选项行：行首（答题括号）+ 等宽分列的选项 */
+.opt{ display: flex; align-items: baseline; gap: 2mm; }
+.opt .lead{ flex: 0 0 auto; }
+.opts{
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  column-gap: 3mm;
+}
+.opts > span{ white-space: nowrap; }
+
+/* 阅读短文 */
+.passage{
+  border: 1px solid #999;
+  border-radius: 2mm;
+  padding: 1.5mm 4mm;
+  margin: 1mm 0 2mm;
+  font-family: var(--font-kai);
+  font-size: 15.5px;
+  line-height: 1.8;
+}
+.passage p{ margin: 0; text-indent: 2em; }
+
+/* 作答横线 */
+.lines .ln{ height: 8.5mm; border-bottom: var(--w-line) solid var(--ink-line); }
+
+/* ── 看拼音写词语：拼音在上，田字格在下，逐字对齐 ── */
+.words{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2mm 5mm;
+  margin-top: 1mm;
+  line-height: 1.2;
+}
+.word{ display: inline-grid; break-inside: avoid; }
+.py{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--cell);
+  font-family: "Times New Roman", "Liberation Serif", serif;
+  font-size: 13px;
+  text-align: center;
+  padding-bottom: 1px;
+}
+
+.foot{ margin-top: auto; text-align: center; color: #999; font-size: 11px; line-height: 1.4; }
+
+/* ── 屏幕（手机）：选项回到一项一行，页头上下排。@media print 一个字都不动 ── */
+@media screen and (max-width: 760px){
+  .head{ flex-direction: column; align-items: flex-start; gap: 3px; }
+  .head .info{ white-space: normal; }
+  .opts{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .opts > span{ white-space: normal; }
+}
