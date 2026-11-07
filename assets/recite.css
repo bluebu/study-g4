@@ -1,0 +1,245 @@
+/* ── 背诵单（语文）─────────────────────────────────────────
+   要背的那段课文切成块：一块一行，右边三个格子是「三轮撤提示」。
+   下半页是抽查点 + 四天打卡 + 四条判据。依赖 palette.css + print.css。
+
+   **原文字号别调小**：孩子要照着这张纸读、再盖住说，正文楷体 17px 是
+   给九岁孩子的下限（`--text` 由 spec 的 `size:` 注入）。一段 4 块、两段
+   8 块正好一页 A4；塞不下先收 .how / .rules 的行距和打卡表行高，
+   再考虑一段一张 —— **别回头去调小 --text**。
+   改完 Read 生成的 PDF 看排版。 */
+
+body{
+  margin: 0;
+  font-family: var(--font-cn);
+  color: #111;
+  font-size: 12.5px;
+  background: #888;             /* 屏幕上模拟纸外的桌面 */
+}
+@media print{ body{ background: #fff; } }
+
+.sheet{
+  --text: 17px;
+  display: flex;
+  flex-direction: column;
+  min-height: 297mm;
+  padding: 12mm 12mm;     /* 比别的打印单窄 2mm —— 原文字号大，这 4mm 要留给它 */
+}
+@media print{ .sheet{ height: 297mm; } }
+
+/* ── 页头 ── */
+.head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid #111;
+  padding-bottom: 5px;
+  margin-bottom: 2.5mm;
+}
+.head h1{ font-size: 18px; margin: 0; padding-right: 10px; }
+.head h1 small{ font-size: 13px; font-weight: 400; color: #666; }
+/* 「要默写」徽章（spec 给了 `copy:` 才出）—— 会背 ≠ 会写，这一份还得写下来。
+   页底第五条判据要翻到底才看得见，所以在页眉先说一次。
+   **填色橙**（不是 .require 那种淡橙底条）：一页上两处橙不能长一样，
+   这个是标记、那个是引文。红不能用 —— 红专属分数，总览那张查阅表是唯一的例外。
+   图标是内联 SVG 不是 emoji：PDF 在 CI 的 ubuntu 上导出，那儿没有 emoji 字体。 */
+.head .copy{
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 8px;
+  padding: 1.5px 8px 2px;
+  border-radius: 999px;
+  background: var(--chinese);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.head .copy svg{
+  width: 11px; height: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.head .info{ font-size: 12px; white-space: nowrap; }
+.head .info span{ margin-left: 10px; }
+.blank{ display: inline-block; border-bottom: 1px solid #111; width: 42px; }
+
+/* 书上要求：照课后题原话，别改写 */
+.require{
+  font-size: 12.5px;
+  background: var(--chinese-bg);
+  border-left: 3px solid var(--chinese);
+  border-radius: 0 4px 4px 0;
+  padding: 4px 9px;
+  margin: 0 0 2.5mm;
+}
+.require b{ margin-right: 6px; color: var(--chinese); }
+
+/* 怎么练：三条固定的方法 */
+.how{
+  margin: 0 0 4mm;
+  padding-left: 5mm;
+  font-size: 11px;
+  color: #666;
+  line-height: 1.45;
+}
+.how li{ margin-bottom: .3mm; }
+.how b{ color: #111; }
+
+/* ── 段和块 ── */
+.part{ margin-bottom: 3mm; }
+.part h2{
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 2mm;
+  border-left: 3px solid var(--chinese);
+  padding-left: 5px;
+  line-height: 1.2;
+}
+.part h2 small{ font-weight: 400; color: #999; font-size: 10.5px; margin-left: 8px; }
+
+.chunk{
+  display: flex;
+  align-items: flex-start;
+  gap: 2.5mm;
+  padding: .8mm 0;
+  border-bottom: 1px dotted var(--line);
+  break-inside: avoid;
+}
+.chunk .no{
+  flex: 0 0 auto;
+  width: 5mm; height: 5mm;
+  margin-top: .8mm;
+  border-radius: 50%;
+  background: var(--chinese-bg);
+  color: var(--chinese);
+  font-size: 9.5px;
+  font-weight: 700;
+  display: grid; place-items: center;
+}
+.chunk .body{ flex: 1 1 auto; min-width: 0; }
+/* 正文：楷体，字大一点 —— 这一行是要被照着读、被盖住说的 */
+.chunk .text{
+  display: block;
+  font-family: var(--font-kai);
+  font-size: var(--text);
+  line-height: 1.55;
+}
+.chunk .cue{ display: block; font-size: 11px; color: #999; margin-top: .2mm; }
+.chunk .cue b{ color: var(--chinese); font-size: 12px; }
+
+/* 短块（古诗一句、文言短句）：提示挪到原文右边，一块省一行。
+   `.text` 不换行，`.cue` 靠 baseline 和它对齐 —— 12 块的三首诗单子
+   就是这么从两页压回一页的（改回 block 会立刻超页，别动）。 */
+.chunk .body.inline{ display: flex; align-items: baseline; gap: 4mm; }
+.chunk .body.inline .text{ display: inline; white-space: nowrap; }
+.chunk .body.inline .cue{ display: inline; margin-top: 0; }
+
+/* 三轮勾选格：全文 → 只看首字 → 白纸 */
+.chunk .ticks{ flex: 0 0 auto; display: flex; gap: 1.6mm; margin-top: 1mm; }
+.chunk .ticks i{
+  box-sizing: border-box;      /* 边框吃在尺寸里，加粗不改行高 */
+  width: 4.6mm; height: 4.6mm;
+  border: var(--w-box) solid var(--ink-box);
+  border-radius: 1mm;
+  background: #fff;
+}
+
+/* ── 抽查点：报一块，接下一块 ── */
+.probe-box{ margin-bottom: 3mm; }
+.probe-box h2{
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 2mm;
+  border-left: 3px solid var(--warn);
+  padding-left: 5px;
+  line-height: 1.2;
+}
+.probe-box h2 small{ font-weight: 400; color: #999; font-size: 10.5px; margin-left: 8px; }
+.probe{ display: flex; align-items: baseline; gap: 2.5mm; margin-bottom: 1mm; }
+.probe .tick{
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 4.6mm; height: 4.6mm;
+  border: var(--w-box) solid var(--ink-box);
+  border-radius: 1mm;
+  background: #fff;
+}
+.probe .q{ flex: 1 1 auto; min-width: 0; font-size: 12.5px; }
+.probe .q b{ color: var(--chinese); }
+.probe .a{ flex: 0 0 auto; font-size: 10.5px; color: #999; }
+
+/* 背写格：只有块少的单子才出（recite.py 的 BLANK_MAX），吃掉下半页那片
+   空白。横线用重复渐变画 —— 格子高度自适应，不用数几行 */
+.write-box{
+  flex: 1 1 auto;
+  min-height: 20mm;
+  margin: 1mm 0 3mm;
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+  padding: 2mm 3mm 0;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 11mm,
+    var(--ink-rule) 11mm, var(--ink-rule) calc(11mm + 1px));
+  background-position: 0 6mm;
+}
+
+/* ── 四天打卡 ── */
+.plan{ width: 100%; border-collapse: collapse; margin-bottom: 3mm; }
+.plan th, .plan td{ border: .6pt solid var(--line); padding: 1.6mm 2mm; }
+.plan thead th{ background: var(--chinese-bg); font-size: 11px; white-space: nowrap; }
+.plan thead th:first-child{ width: 20mm; }
+.plan td{ height: 5.5mm; }
+.plan tbody td:first-child{ font-size: 10.5px; color: #666; white-space: nowrap; }
+
+/* ── 四条判据：钉在页底 ── */
+.rules{ margin-top: auto; padding-top: 2.5mm; border-top: 1.5px dashed #bbb; }
+.rules h2{ font-size: 12.5px; font-weight: 700; margin: 0 0 1.6mm; }
+.rules h2 small{ font-weight: 400; color: #999; font-size: 10.5px; margin-left: 8px; }
+.rules ul{ list-style: none; margin: 0; padding: 0; }
+.rules li{
+  display: flex;
+  align-items: baseline;
+  gap: 2.5mm;
+  font-size: 11.5px;
+  color: #555;
+  line-height: 1.5;
+}
+.rules li i{
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 4.2mm; height: 4.2mm;
+  border: var(--w-box) solid var(--ink-box);
+  border-radius: 50%;
+  background: #fff;
+}
+.rules li b{ flex: 0 0 auto; color: #111; margin-right: 4px; }
+
+.foot{ margin-top: 1mm; text-align: right; color: #999; font-size: 10px; }
+
+/* ── 屏幕（手机）：页头左右分列改成上下两行 ── */
+@media screen and (max-width: 760px){
+  .head{ flex-direction: column; align-items: flex-start; gap: 3px; }
+  .head h1{ padding-right: 0; }
+  .head h1 small{ font-size: 12.5px; }
+  .head .info{ white-space: normal; }
+  /* 纸上短块的提示排在原文右边是为了省页高；手机上纵向不缺空间，
+     还内联的话 nowrap 的原文会把提示挤成一字一行的竖条、还压到勾选格底下
+     （截图里看出来的）—— 窄屏一律回到上下排 */
+  .chunk .body.inline{ display: block; }
+  .chunk .body.inline .text{ white-space: normal; }
+  .chunk .body.inline .cue{ display: block; margin-top: .2mm; }
+
+  /* 抽查点在窄屏竖排：报什么和接什么各占一行。
+     .q 必须写 flex-basis:0 —— 留着 auto 的话，wrap 会把整个 .q 挤到下一行，
+     勾选框孤零零留在上一行（截图里看出来的）。basis 0 = 只占剩余空间，
+     里面的文字自己折行 */
+  .probe{ flex-wrap: wrap; }
+  .probe .q{ flex: 1 1 0; }
+  .probe .a{ flex: 1 0 100%; padding-left: 7mm; }
+}

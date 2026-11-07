@@ -1,0 +1,124 @@
+/* ── 复述地图（英语 · A4 打印）────────────────────────────
+   一段一行，关键词用箭头串起来。孩子拿着这张纸把故事讲一遍，
+   所以第一优先是「一眼能扫到下一个词」：词要大、箭头要淡、
+   行与行之间留得开。A4 尺寸和边距由 print.css 的 .sheet 管。 */
+
+body{ font-family:var(--font-cn); color:var(--ink); font-size:13px; line-height:1.5; }
+.sheet{ background:var(--card); padding:8mm 10mm; }
+
+/* 页头 */
+.head{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  border-bottom:2.5px solid var(--english); padding-bottom:5px; margin-bottom:2mm;
+}
+.head h1{
+  font-family:var(--font-display); font-size:21px; margin:0;
+  letter-spacing:.5px; color:var(--ink);
+}
+.head .meta{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 0; }
+.head .who{ font-size:11.5px; color:var(--ink); white-space:nowrap; }
+.head .who span{ margin-left:14px; }
+.u{ display:inline-block; border-bottom:1px solid var(--ink-soft); width:58px; }
+
+.task{
+  font-size:11.5px; color:var(--english); background:var(--english-bg);
+  border-radius:2mm; padding:1.6mm 4mm; margin:0 0 2mm;
+}
+
+/* ── 阶段分组 ─────────────────────────────────────────────
+   Plot Diagram 的五个阶段（美国四年级在学的那套），阶段名挂在左边当路标，
+   段落归在它右边。CLIMAX 那格实心，整本书的转折一眼看见。 */
+.acts{ display:flex; flex-direction:column; gap:3.6mm; }
+.act{ display:flex; gap:2.5mm; align-items:flex-start; }
+
+/* 阶段标签：英文阶段名 + 中文短名和段数 */
+.act .tag{
+  flex:0 0 26mm; margin-top:.3mm;
+  font-family:var(--font-display); font-size:11px; font-weight:800;
+  color:var(--english); background:var(--english-bg);
+  border-radius:1.5mm; padding:1.2mm 1.5mm; text-align:center; line-height:1.25;
+}
+.act .tag small{ display:block; font-size:9px; font-weight:600; opacity:.75; }
+/* 转折点只有一段，实心底色把它顶出来 —— 整本书的转折就在那儿 */
+.act.climax .tag{ background:var(--english); color:var(--card); }
+
+.act .segs{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2.6mm; }
+.act .seg{ display:flex; gap:2mm; align-items:baseline; }
+.act .seg > i{
+  flex:0 0 5.2mm; height:5.2mm; margin-top:.4mm;
+  border-radius:50%; border:1.2px solid var(--english); color:var(--english);
+  font-family:var(--font-display); font-size:9px; font-weight:800; font-style:normal;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* 词自己会折行，箭头跟着走 —— 长的那几段（8 个节点）折成两行也不散 */
+.chain{ flex:1 1 auto; min-width:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:0 1.5mm; }
+/* 一个 unit = 一个词 + 跟在它后面的分隔符（箭头 / 词库里的 ·），整体不拆开。
+   两种形状共用，理由也同一个：折行时分隔符不许落到下一行行首。
+   顺带解决另一件事 —— `Uncle Alp`、`household chores` 这种词自带空格，
+   能内部折行的 flex item 会被 flex-shrink 压到 min-content，于是 Chrome 判定
+   「一行放得下」永不折行，实际宽 317mm，打印时整张纸被缩到 66% */
+.unit{ white-space:nowrap; }
+.kw{
+  font-family:var(--font-display); font-size:16.5px; font-weight:600;
+  letter-spacing:.2px; line-height:1.5;
+}
+/* 每段的头一个词是这一段的钩子，描成主色，眼睛好落点。
+   **只给箭头串那一种** —— 词库里的词没有先后，描哪个都是瞎给重点 */
+.chain .unit:first-child .kw{ color:var(--english); font-weight:700; }
+.arw{
+  color:var(--ink-soft); opacity:.4; font-size:11.5px; font-weight:400;
+  /* 左边要留气：箭头和它前面的词是一个 unit，不留就贴成「just→」。
+     右边不用留，unit 之间本来就有 gap */
+  margin-left:1.2mm;
+}
+
+/* ── 思维导图那种形状：问题当主线，词库垫在下面 ────────────
+   老师给的是「一章几个问题 + 一章一批词」。问题有先后（导图上编了号，
+   每章从 1 起），所以沿用 .seg 那套编号圆圈；**词没有先后**，摊成一片
+   用 · 隔开，不给箭头 —— 箭头是「先这个再那个」的断言。
+   问句读一遍就过，比关键词小；词还要边讲边扫，比问句大。 */
+.seg .q{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-size:14px; line-height:1.45;
+}
+.pool{
+  flex:1 1 auto; min-width:0;
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:0 1.5mm;
+  padding-top:2.5mm; border-top:1px dashed var(--line);
+}
+/* 这一种形状行数少（11 问 + 3 片词库），行距按 .acts.asked 单独放宽 ——
+   **别去动 .acts / .act .segs 本身**，那是一行一段那种形状试出来的数
+   （16 段刚好一页，见 english/CLAUDE.md），改了 L1 那张就变样 */
+.acts.asked{ gap:7mm; }
+.acts.asked .segs{ gap:4mm; }
+/* 一段 / 一片词库不许被分页切开（真被切开时词会裂在两页上，读不成） */
+.seg, .pool{ break-inside:avoid; }
+.pool .kw{ font-size:17.5px; }
+/* 和 .arw 一样只留左边的气：· 和它前面的词是一个 unit，不留就贴成「Detie·」 */
+.pool .dot{
+  color:var(--ink-soft); opacity:.45; font-size:12px; font-weight:400;
+  margin-left:1.2mm;
+}
+
+.foot{
+  margin-top:2.5mm; padding-top:2mm; border-top:2px dashed var(--line);
+  font-size:11px; color:var(--ink-soft); text-align:center;
+}
+
+/* 手机上：序号和词都收一点，词还是不换行（换了就断在词中间） */
+/* 手机上：阶段标签摞到段落上面去，横向就不挤了 */
+@media screen and (max-width:620px){
+  .sheet{ padding:8mm 5mm; }
+  .head{ flex-wrap:wrap; row-gap:3px; }
+  .acts{ gap:3mm; }
+  .act{ flex-direction:column; gap:1.5mm; }
+  .act .tag{
+    flex:0 0 auto; align-self:flex-start; text-align:left;
+    padding:1mm 2.5mm; font-size:11px;
+  }
+  .act .tag small{ display:inline; margin-left:2mm; }
+  .kw{ font-size:15px; }
+  .seg .q{ font-size:13px; }
+  .pool .kw{ font-size:14px; }
+}
