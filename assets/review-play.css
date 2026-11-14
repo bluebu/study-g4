@@ -1,0 +1,35 @@
+/* 打卡评价 · 能点的词（逻辑在 review-play.js）
+   绿的念标准音、红的播她读的那一段。样式只做两件事：
+   ① 让人看出这个词能点 ② 正在响的时候有个反馈。 */
+
+/* ⚠️ 必须带 .diff 前缀 —— 和 review.css 里 `.d` 那条同一个理由：
+   `.say` 这种通用名早晚会撞上别处的类，别让它裸奔 */
+.diff .d .say {
+  cursor: pointer;
+  /* ins 自己把 text-decoration 关掉了，这儿要显式写回来 */
+  text-decoration: underline dotted 1.5px;
+  text-underline-offset: 3px;
+  /* 手机上点起来别太小 —— 词本身就那么宽，只能靠 padding 撑判定区 */
+  padding: 2px 4px;
+}
+.diff .d .say:hover { text-decoration-style: solid; }
+/* 正在念 / 正在放 */
+.diff .d .say.on {
+  text-decoration: none;
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+/* 「点词听读音」那行提示 */
+.tap {
+  font-size: .82rem;
+  color: var(--ink-soft);
+  margin: -4px 0 10px;
+}
+/* 提示里的两个小样本，跟着正文的 mark / ins 走，只是缩小一点 */
+.tap mark, .tap ins { font-size: .9em; }
+
+@media print {
+  /* 纸上点不了 —— 提示整行拿掉，词恢复成普通的高亮 */
+  .tap { display: none; }
+  .diff .d .say { text-decoration: none; padding: 0 3px; box-shadow: none; }
+}

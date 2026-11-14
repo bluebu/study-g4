@@ -1,0 +1,118 @@
+/* ── KET 词汇默写卷（英语）────────────────────────────────
+   看中文写英文：序号 + 中文释义 + 灰色词性提示 + 四线三格。
+   四线格本体在 grid.css（--four-h / --four-rule-color / --four-base-color），
+   这里只管版面。依赖 palette.css + print.css + grid.css。
+
+   一页 30 词（2 栏 × 15 行）是老站定稿的密度，行距宁松勿密：
+   四线格 11mm + row-gap 20px，15 行正好落在 A4 里。改 row-gap 前先 Read PDF。 */
+
+body{
+  margin: 0;
+  font-family: var(--font-cn);
+  color: #111;
+  font-size: 13px;
+  background: #888;             /* 屏幕上模拟纸外的桌面 */
+}
+@media print{ body{ background: #fff; } }
+
+/* ── 页头 / 页脚 ── */
+.head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid #111;
+  padding-bottom: 6px;
+  margin-bottom: 28px;   /* 老站定稿的首行留白 */
+}
+.head h1{ font-size: 15px; margin: 0; padding-right: 10px; }
+.head .info{ font-size: 12px; white-space: nowrap; }
+.head .info span{ margin-left: 10px; }
+.blank{ display: inline-block; border-bottom: 1px solid #111; width: 40px; }
+
+.foot{
+  margin-top: 3mm;
+  text-align: right;
+  color: #999;
+  font-size: 10px;
+}
+
+/* ── 默写版：两栏词位 ── */
+.items{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 30px;
+  row-gap: 20px;
+}
+.item{ display: flex; align-items: center; break-inside: avoid; }
+.item .no{ width: 26px; color: #555; font-size: 12px; flex-shrink: 0; }
+.item .zh{ flex-shrink: 0; max-width: 46%; line-height: 1.3; font-size: 14px; }
+.item .pos{
+  color: #888;
+  font-size: 10px;
+  font-style: italic;
+  margin-left: 3px;
+  flex-shrink: 0;
+}
+/* 写字区。.four 的线由 grid.css 画，这里只给它宽度 */
+.item .four{ flex: 1; margin-left: 10px; min-width: 60px; }
+
+/* 合集：章节标题占一整行（= 2 个词位），pad 是对齐用的空位 */
+.item.section{
+  grid-column: 1 / -1;
+  font-weight: 700;
+  font-size: 15px;
+  min-height: var(--four-h);
+  display: flex;
+  align-items: center;
+}
+.item.pad{ min-height: var(--four-h); }
+
+/* ── 答案对照版：紧凑无线格，竖排 5 个一组、一行两组 ── */
+.items.compact{ display: block; }
+.items.compact .band{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 30px;
+  padding: 3px 6px;
+  margin: 0 -6px 2px;
+  border-radius: 3px;
+  break-inside: avoid;
+}
+/* 组行交替浅底：一眼看出哪 5 个是一组，又不占额外高度 */
+.items.compact .band.alt{ background: #F1F3F5; }
+.items.compact .group{ display: flex; flex-direction: column; row-gap: 6px; }
+
+.ans{
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  min-height: 20px;
+  font-size: 12.5px;
+}
+.ans .no{ width: 26px; color: #555; font-size: 11px; flex-shrink: 0; }
+.ans .pos{ color: #888; font-size: 9.5px; font-style: italic; margin-left: 3px; }
+.ans .en{ margin-left: auto; font-weight: 600; padding-left: 12px; }
+.ans .ph{ color: #666; font-size: 11px; margin-left: 6px; }
+.ans.section{
+  font-weight: 700;
+  font-size: 13.5px;
+  min-height: 26px;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+
+/* ── 手机上收成一栏 ────────────────────────────────────
+   默写版是两栏词位，每栏在 390px 的屏上只剩 175px，
+   而一个词位要放「题号 26 + 中文 + 四线格至少 60」——
+   差 8px 放不下，纸就被撑破一点点：白纸只铺了屏幕的一部分，
+   右边一小条内容落在灰色桌面上。
+
+   合集的章节标题占「2 个词位」，一栏之后要跟着改成占 1 个，
+   否则那一行会空出半行。打印那条路不受影响，A4 还是两栏。 */
+@media screen and (max-width: 620px){
+  .items{ grid-template-columns: 1fr; row-gap: 14px; }
+  .item.section{ grid-column: span 1; }
+  .item.pad{ display: none; }          /* 对齐用的空位，一栏时没意义 */
+  .items.compact .band{ grid-template-columns: 1fr; }
+  .sheet{ padding: 10mm 6mm; }
+}

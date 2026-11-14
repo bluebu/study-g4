@@ -1,0 +1,115 @@
+/* 动手 · 作品页（手工 / 绘画 / 科学小实验）。手机上边做边翻，同一份 HTML 导 A4。
+   页骨架（.wrap .hero .back）走 site.css，这儿只管事实牌和区块卡。
+   颜色取 palette.css 的 --maker，**每处都带兜底值** —— palette.css 被浏览器缓存成
+   旧版时变量取不到，整块会变透明（学习方法页踩过）。 */
+
+/* ── 页头 ── */
+.mk .hero{ position:relative; }
+.mk .hero .pdf{
+  position:absolute; right:0; top:0;
+  font-size:.8rem; font-weight:600; color:var(--accent, #2A9D9F);
+  background:#fff; border:1px solid var(--accent-bg, #D9F1F0); border-radius:99px; padding:3px 12px;
+}
+.mk .hero h1 .emo{ margin-right:6px; }
+.mk .hero .sub{
+  font-size:.95rem; color:var(--ink, #4A3F36); line-height:1.65;
+  max-width:34em; margin:8px auto 0; text-align:left;
+}
+
+/* ── 事实牌：类别 / 议题 / 截止 … 两列，窄屏也两列 ── */
+.mk .facts{ list-style:none; margin:0 0 16px; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.mk .facts li{
+  min-width:0; overflow-wrap:anywhere;
+  background:var(--card, #FFFDF8); border:1.5px solid var(--line, rgba(120,104,84,.16)); border-radius:14px;
+  padding:7px 11px 8px; font-size:.86rem; line-height:1.5;
+}
+.mk .facts small{ display:block; font-size:.68rem; letter-spacing:.06em; font-weight:700; color:var(--accent, #2A9D9F); }
+
+/* ── 区块卡 ── */
+.mk .blk{
+  background:var(--card, #FFFDF8); border:2px solid var(--line, rgba(120,104,84,.16)); border-radius:22px;
+  box-shadow:0 3px 0 var(--line, rgba(120,104,84,.16));
+  padding:14px 16px 6px; margin:0 0 14px; overflow:hidden;
+}
+.mk .blk h2{
+  display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+  margin:0 0 4px; font-family:var(--font-display); font-size:1.05rem; color:var(--accent, #2A9D9F);
+}
+.mk .blk h2 small{ font-family:var(--font-cn); font-size:.78rem; font-weight:400; color:var(--ink-soft, #9A8C7C); }
+.mk .blk h2 .chip{
+  margin-left:auto; font-family:var(--font-cn); font-size:.72rem; font-weight:600; white-space:nowrap;
+  color:var(--accent, #2A9D9F); background:var(--accent-bg, #D9F1F0); border-radius:999px; padding:1px 9px;
+}
+
+/* 条目：左边一个记号，右边标题 + 说明 + 小字 */
+.mk .blk ul, .mk .blk ol{ list-style:none; margin:0; padding:0; }
+.mk .blk > ul > li, .mk .blk > ol > li{
+  display:flex; align-items:flex-start; gap:11px;
+  padding:10px 0 11px; border-top:1.5px solid var(--line, rgba(120,104,84,.16));
+}
+.mk .blk > ul > li:first-child, .mk .blk > ol > li:first-child{ border-top:none; }
+.mk .blk li > div{ flex:1 1 auto; min-width:0; }
+.mk .blk li > div > b{ display:block; font-size:.98rem; line-height:1.5; }
+.mk .blk li .d{ display:block; font-size:.9rem; line-height:1.7; margin-top:2px; }
+.mk .blk .notes{ margin-top:5px; }
+.mk .blk .notes li{
+  font-size:.82rem; line-height:1.65; color:var(--ink-soft, #9A8C7C);
+  padding-left:1.1em; text-indent:-1.1em;
+}
+.mk .blk .notes li::before{ content:"· "; color:var(--accent, #2A9D9F); font-weight:700; }
+
+/* 左边那个记号：圆点 / 编号 / 方格 / ⚠ */
+.mk .mark{ flex:0 0 auto; display:grid; place-items:center; width:26px; height:26px; margin-top:1px; font-style:normal; }
+.mk .list .mark::before{ content:""; width:9px; height:9px; border-radius:50%; background:var(--accent, #2A9D9F); }
+.mk .steps > ol{ counter-reset:s; }
+.mk .steps > ol > li{ counter-increment:s; }   /* 只数直接子项，不数挂在底下的小字 */
+.mk .steps .mark{
+  border-radius:50%; background:var(--accent, #2A9D9F); color:#fff;
+  font-family:var(--font-display); font-weight:700; font-size:.88rem;
+}
+.mk .steps .mark::before{ content:counter(s); }
+.mk .check .mark{
+  width:22px; height:22px; margin:3px 2px 0;
+  border:2px solid var(--ink-soft, #9A8C7C); border-radius:6px; background:#fff;
+}
+/* 注意事项：琥珀底。这套色板里琥珀就一个意思 —— 留神 */
+.mk .warn{ background:var(--warn-bg, #FBEFC9); border-color:var(--bonus-line, #EBD7A6); box-shadow:0 3px 0 var(--bonus-line, #EBD7A6); }
+.mk .warn h2{ color:var(--bonus, #B8862B); }
+.mk .warn > ul > li{ border-top-color:var(--bonus-line, #EBD7A6); }
+.mk .warn .mark::before{ content:"⚠️"; font-size:1rem; line-height:1; }
+
+/* ── 表 ── */
+.mk table{ width:100%; border-collapse:collapse; font-size:.9rem; margin:6px 0 10px; }
+.mk th, .mk td{
+  padding:8px 10px; text-align:left; vertical-align:top; line-height:1.6;
+  border-top:1.5px solid var(--line, rgba(120,104,84,.16));
+}
+.mk th{ font-size:.78rem; color:var(--accent, #2A9D9F); background:var(--accent-bg, #D9F1F0); border-top:none; }
+.mk tr:first-child td{ border-top:none; }
+.mk td:first-child{ font-weight:700; white-space:nowrap; }
+
+/* ── 几段话 ── */
+.mk .text p{ margin:4px 0 10px; font-size:.92rem; line-height:1.8; }
+.mk .text p.note{ font-size:.82rem; color:var(--ink-soft, #9A8C7C); margin-top:-6px; }
+
+/* ── A4 打印版（make pdf / CI 导出 <slug>.pdf）────────────────────────
+   同一份 HTML，纸上只换版式、不换内容。这张是一路往下流的长文档，边距写在
+   @page 上（每页都有），不学 print.css 把边距写在 .sheet 的 padding 上 ——
+   那样只有第一页有上边距（写字单踩过）。条目整条不跨页、区块标题不落页底。 */
+@page{ size:A4; margin:12mm 11mm; }
+@media print{
+  html, body{
+    width:auto; margin:0; padding:0;
+    background:#fff !important;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .mk.wrap{ max-width:none; width:auto; padding:0; }
+  .mk .hero{ margin-bottom:4mm; }
+  .mk .hero .back, .mk .hero .pdf{ display:none; }
+  .mk .hero h1{ font-size:1.6rem; margin:0; }
+  .mk .facts{ grid-template-columns:repeat(3, 1fr); margin-bottom:4mm; }
+  .mk .blk{ box-shadow:none; margin-bottom:4mm; }
+  .mk .blk h2{ break-after:avoid; page-break-after:avoid; }
+  .mk .blk > ul > li, .mk .blk > ol > li, .mk tr{ break-inside:avoid; page-break-inside:avoid; }
+  .mk .blk.table, .mk .blk.warn{ break-inside:avoid; page-break-inside:avoid; }
+}

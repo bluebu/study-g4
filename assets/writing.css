@@ -1,0 +1,278 @@
+/* ── 写字 · 笔顺单（语文）────────────────────────────────────
+   一个字一行：左边大田字格印整字，右边把笔画逐笔累加铺开。
+   依赖 palette.css + print.css + grid.css。
+
+   --big / --step 由 spec 的旋钮通过 .sheet 的内联 style 注入。
+
+   ⚠️ **范字是 SVG 不是字体**，所以这儿不用 --font-kai。为什么见 writing.py 的
+      文件头（一句话：字体切不出「第 3 笔是哪一段」，而且本地 mac 和线上 ubuntu
+      的楷体字形还不一样）。
+
+   ⚠️ **颜色是按黑白打印定的，不是按屏幕。** 家长点「打印单」多半是黑白激光，
+      所以「这一笔是新的」不能只靠色相：新笔画 --stroke-new 灰度 88、
+      旧笔画 --stroke-old 灰度 176，差整整 88 级 —— 黑白打出来是「深灰 vs 浅灰」，
+      照样一眼看出多了哪一笔。红色只是彩色打印和屏幕上的增强。
+      **别把 old 调深**，那样黑白下两者就糊成一片了。
+      （逐笔累加这个形式本身也不依赖颜色：第 N 格就是比第 N-1 格多一笔。
+      颜色、绿点、序号是三重冗余，掉任何一个都还认得出笔顺。）
+
+   ⚠️ 红色在全站是「分数越差越红」的专属色，这儿是**第二个有意的例外**
+      （第一个是教材总览的「有活儿」格）。笔顺表用红标当前笔画是字帖通用惯例,
+      孩子在学校见到的就是这个样子，换成别的色反而要重新学怎么看。 */
+
+:root{
+  --stroke-new:  #C0392B;   /* 这一笔新写的（灰度 88，黑白打印是深灰） */
+  --stroke-old:  #B0B0B0;   /* 之前已经写好的（灰度 176，浅） */
+  --stroke-dot:  #1B7F4B;   /* 起笔点（灰度 100，黑白打印看得见）。半径在模板里，13mm 格子下约 1.3mm */
+  --step-rule:   #C9C9C9;   /* 小格的框线：**灰的，不是红的** —— 见下面那条 */
+}
+
+body{
+  margin: 0;
+  font-family: var(--font-cn);
+  color: #111;
+  font-size: 13px;
+  background: #888;             /* 屏幕上模拟纸外的桌面 */
+}
+@media print{ body{ background: #fff; } }
+
+/* 格子尺寸。**小格不能再小了** —— 底下要印「横折折折钩」五个字。
+   版心 186mm − 大格 26 − 间距 3 = 157mm，16mm 一格排得下 9 个，超过就折行。 */
+.sheet{ --big: 26mm; --step: 16mm; }
+
+/* ── 页头（和今日练习一个形状，两张单子会挨着打印）── */
+.head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid #111;
+  padding-bottom: 6px;
+  margin-bottom: 4mm;
+}
+.head h1{ font-size: 15px; margin: 0; padding-right: 10px; }
+.head .info{ font-size: 12px; white-space: nowrap; }
+.head .info span{ margin-left: 10px; }
+.blank{ display: inline-block; border-bottom: 1px solid #111; width: 44px; }
+
+/* ── 页头在每页顶上重复 ──────────────────────────────────────
+   一课 26 个字要六页，**分开拿在手上，第 3 页也得知道是哪一课的**。
+   静态 HTML 不知道分页点在哪，所以整页包进一个 <table>、页头放 <thead> ——
+   表头重复是打印规范定义的行为，浏览器会**自动为它留出每页的高度**。
+
+   ⚠️ 试过 position:fixed（看着更省事）：页头确实每页重复了，但**内容不给它
+      让位** —— padding-top 只在第一页生效，第 2 页起笔画直接压在页头字上，
+      印出来两层叠着。@page 的 margin box 那套 Chrome 不支持，
+      `counter(page)` 也只在那儿能用，所以这张纸有页头、没页码。 */
+.pg{
+  width: 100%;
+  border-collapse: collapse;
+}
+.pg th,
+.pg td{
+  padding: 0;
+  text-align: left;
+  font-weight: 400;
+  vertical-align: top;
+}
+/* ⚠️ **纸的上边距交给表头，不留在 .sheet 上。**
+   `.sheet` 的 padding-top 是块级内边距 —— 只在元素开头出现**一次**，
+   所以第 1 页页头上方有 14mm 留白、第 2 页起页头直接贴着纸边，
+   同一张单子前后两个样。挪到每页都渲染的 thead 上，各页就一模一样了。 */
+.sheet{ padding-top: 0; padding-bottom: 0; }
+.pg thead th{ padding-top: 14mm; }
+/* ⚠️ **表格末尾一点底部空间都不能留，否则 PDF 末尾多一张全白的纸。**
+   Chrome 打印长表格时会为「下一页的表头」预留高度；内容排到最后一页末尾时，
+   底下哪怕只多几毫米，都会把那份预留顶成真的一页 —— 印出来是一张什么都没有的
+   纸，家长会以为打印坏了。改成 0 就回到 6 页。
+
+   诊断留个记号，省得下次又从头找：**拆掉表格语义（.pg 全设 display:block）
+   就是 6 页无白页**，所以病根在表格分页，不在内容高度（正文实测 1352mm，
+   每页 271mm，理论才 5 页）。`page-break-inside:auto`、`border-collapse`、
+   `thead{break-inside:avoid}` 都试过，一个都不管用。
+
+   代价是最后一页内容贴着纸底 —— 这张单子最后一页只排到一半，看不出来。 */
+.pg tbody td{ padding-bottom: 0; }
+/* 每页的页头底下都要留一道气口，不然第 2 页起第一个字贴着横线 */
+.pg thead .head{ margin-bottom: 4mm; }
+
+.hint{ font-size: 11px; color: #777; margin: 0 0 3.5mm; }
+
+/* 「要求会默写」——**纯文字，不用 emoji**（CI 的 ubuntu 只装了中文字体，
+   emoji 会印成豆腐块）。会背 ≠ 会写，这件事得在动笔之前就看见。 */
+.badge{
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid var(--chinese);
+  border-radius: 3px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  color: var(--chinese);
+  vertical-align: 1px;
+}
+
+/* ── 区块 ── */
+.block{ margin-bottom: 3mm; }
+.block h2{
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 2.5mm;
+  border-left: 3px solid var(--chinese);
+  padding-left: 5px;
+  line-height: 1.2;
+  /* 标题不许自己待在一页最底下 —— 「词语表」印在第 2 页页底、字全在第 3 页，
+     翻页的人会以为这一栏是空的 */
+  break-after: avoid;
+}
+/* 词头（提纲 tí gāng）同理：它和底下第一个字得在同一页上 */
+.wd{ break-after: avoid; }
+
+/* ── 一个词 ── */
+.word{
+  break-inside: avoid;          /* 一个词不劈到两页 —— 两个字要挨着看才有用 */
+  margin-bottom: 3mm;
+}
+.wd{
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 2mm;
+  padding-left: 6px;
+  border-left: 2px solid var(--chinese-bg);
+  letter-spacing: .5px;
+}
+.wd .wpy{               /* 和词之间不许有空白节点，间距靠 margin（见模板注释） */
+  margin-left: 8px;
+  font-size: 14px;      /* 拼音是给孩子念的，不是标注 —— 别为了塞内容往下调 */
+  font-weight: 400;
+  color: #777;
+  font-family: "Times New Roman", var(--font-cn), serif;
+  letter-spacing: 0;
+}
+
+/* ── 一个字一行：左栏（大格 + 字的信息）| 右栏（逐笔小格）──
+   ⚠️ **信息在大格底下，不在右栏第一行。** 原先它占着右栏第一行，把笔顺格
+      整体往下推半行，大格的上沿就和第一行格子错开了 —— 一眼看过去左右不齐。
+      现在两栏都从同一条上沿开始。 */
+.ch{
+  display: flex;
+  align-items: flex-start;      /* 两栏顶部对齐，就是「齐」的来源 */
+  gap: 4mm;
+  margin-bottom: 2mm;
+  padding-bottom: 2mm;
+  border-bottom: 1px solid #F0EDE8;   /* 字与字之间一条极淡的界，扫的时候不串行 */
+  break-inside: avoid;
+}
+.word .ch:last-child{ border-bottom: 0; padding-bottom: 0; }
+
+.glyph{
+  width: var(--big);
+  flex: none;
+  text-align: center;
+}
+.glyph .tian.big{ --cell: var(--big); }
+
+/* 字的信息：拼音 / 共几画 / 偏旁部首。排在大格底下，宽度就是大格那么宽 */
+.meta{
+  margin-top: 1.5mm;
+  line-height: 1.35;
+}
+.meta .cpy{
+  display: block;
+  font-size: 17px;      /* 这一块的主角。孩子先念音、再看字怎么写 */
+  color: #222;
+  font-family: "Times New Roman", var(--font-cn), serif;
+}
+.meta .cnt{ font-size: 10px; color: #999; }
+
+/* 偏旁部首：部首本身印大一点，后面跟中文名（草字头、提手旁）。
+   独体字（生、气、丹、乐）名字那格印「独体字」—— 不硬安一个偏旁名，那是编的。 */
+.meta .rad{
+  display: block;
+  font-size: 11px;
+  color: #555;
+  white-space: nowrap;
+}
+.meta .rad .r{
+  font-family: var(--font-kai);
+  font-size: 15px;
+  font-style: normal;
+  color: var(--chinese);   /* 部首是这张纸上唯一用语文橙的地方：一眼找得到 */
+  margin-right: 2px;
+}
+
+/* 逐笔小格。格子连成一条（共享边线），一格一步 */
+.steps{
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;        /* 画数多的字自己折行，折行点由 --step 和版心宽度定 */
+  row-gap: 2mm;
+}
+
+.st{ text-align: center; }
+/* 相邻两格共享边线：靠负边距。grid.css 那条 `.tian + .tian` 在这儿不起作用 ——
+   格子外面包了 .st（要在下面挂序号），两个 .tian 不是兄弟。
+   ⚠️ 别改成给每格各画一圈边框，相邻边会叠成双倍粗线。 */
+.st + .st{ margin-left: calc(var(--tian-rule) * -1); }
+/* 折行时新一行的第一格会把负边距用在行首、往左啃掉一条边。
+   flex 换行后拿不到「每行第一个」的选择器，所以给整条 steps 补回 1px 左内边距，
+   让被啃掉的那条边有地方待。 */
+.steps{ padding-left: var(--tian-rule); }
+.steps .st:first-child{ margin-left: 0; }
+
+/* ⚠️ **小格的框线走灰，不跟大格的红。** 田字格的红线是给「写」用的（照着格子
+   摆结构），笔顺小格是给「看」的：这一格和上一格差在哪一笔。框线、十字虚线
+   要是也红，13mm 见方里三样红东西叠在一起，新笔画那一抹红就跳不出来了 ——
+   第一版就是这么印出来的，一眼扫过去全是红。
+   现在这张纸上**红色只有一个意思：这一笔是新写的**。 */
+.st .tian.step{
+  --cell: var(--step);
+  --tian-rule-color: var(--step-rule);
+  --tian-cross-color: #E6E6E6;     /* 十字虚线再淡一档，13mm 里别喧宾夺主 */
+}
+.st b{
+  display: block;
+  font-size: 9px;
+  font-weight: 400;
+  color: #999;
+  line-height: 1.5;
+}
+/* 这一笔叫什么。**字号是被格子宽度卡死的**：16mm ≈ 60px，
+   「横折折折钩」五个字得排在一行里，所以 9px 是上限，不是随手挑的。
+   想让名字更大，得先把 --step 加大、每行少排一个格。 */
+.st em{
+  display: block;
+  font-size: 9px;
+  font-style: normal;
+  color: #555;
+  line-height: 1.25;
+  letter-spacing: -.3px;
+  white-space: nowrap;
+}
+
+/* ── 笔画本身 ── */
+.tian svg{
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.tian svg path.old{ fill: var(--stroke-old); }
+.tian svg path.new{ fill: var(--stroke-new); }
+/* 大格里的整字：全是 .old，但那儿要的是清楚的黑字，不是浅灰 */
+.tian.big svg path{ fill: #1A1A1A; }
+.tian svg circle.dot{ fill: var(--stroke-dot); }
+
+.foot{
+  margin-top: 3mm;
+  text-align: right;
+  color: #999;
+  font-size: 10px;
+}
+
+/* ── 手机上 ────────────────────────────────────────────────
+   .sheet 有 max-width:100%，但里面这条 12 格的笔顺是压不动的（每格是固定 mm）。
+   所以窄屏让 .steps 自己折行 —— 纸上一行排满是为了省页高，屏幕上纵向不缺空间。
+   ⚠️ 只在 @media screen 里改，@media print 一个字都不动。 */
+@media screen and (max-width: 560px){
+  .ch{ gap: 3mm; }
+}
