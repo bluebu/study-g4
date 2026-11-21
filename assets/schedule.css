@@ -1,0 +1,130 @@
+/* ── 课程表（A4 打印 + 手机）──────────────────────────────
+   一周一张纸，贴在书桌前。第一优先是**远看认得出**：科目字大，
+   语数英按三科家族色跳出来，副科一律中性 —— 这张表天天用来回答
+   「明天带哪几本书」，十一门课全上色就没有重点了。
+
+   A4 尺寸和边距由 print.css 的 .sheet 管，这儿只管表格自己。
+   行高 / 节次列宽做成变量（--h / --pn），手机上只改这两个数，
+   **@media print 一个字都不动** —— 纸上那份永远是 33mm 一行。 */
+
+body{ font-family:var(--font-cn); color:var(--ink); font-size:13px; line-height:1.5; }
+
+/* ── A4 横版 ───────────────────────────────────────────────
+   print.css 那份 @page 是竖版（全站打印单共用），课表在这儿覆盖成横版：
+   五天横着摆，竖版一列只有 37mm，「书法（英）」这种带括号的名字得缩字号
+   才放得下；横过来一列 52mm，字反而能更大。
+   **顺序有讲究**：page.render 里 css=("print.css","schedule.css")，
+   这一份在后面才盖得住 —— 别把顺序调过来。 */
+@page{ size: A4 landscape; margin: 0; }
+.sheet{ width:297mm; padding:11mm 12mm; background:#fff; }   /* 整张纸纯白 */
+@media print{
+  html, body{ width:297mm; }
+  .sheet{ width:297mm; }
+}
+
+/* 纸上没有页头 —— 表格自己就说明这是课表，抬头那一条只占掉一行格子的高度。
+   卷名和学期在 <title> 和目录页里，不印在纸上。 */
+
+/* ── 表格 ─────────────────────────────────────────────────
+   节次列和课格在同一个 grid 里，行高天然对齐。 */
+.tt{
+  --h: 20mm;      /* 一节课一行：6 行 + 两行机动格正好填满横版一页 */
+  --hx: 14mm;     /* 机动格（课后班）矮一档，两行字够放 */
+  --pn: 9mm;      /* 节次列宽 */
+  display:grid;
+  grid-template-columns: var(--pn) repeat(5, 1fr);
+  gap: 1.2mm;
+}
+
+/* 星期抬头 */
+.hd{
+  font-family:var(--font-display); font-size:13px; font-weight:700;
+  color:var(--ink); text-align:center;
+  padding:1.6mm 0; border-radius:1.5mm;
+  background:var(--grid); border:1px solid var(--line);
+}
+.hd.corner{ background:none; border:none; }
+
+/* 节次号 */
+.p{
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-size:13px; font-weight:700;
+  color:var(--ink-soft);
+}
+
+/* 一格课。副科是默认样式（中性），主科靠 .main 换成三科色 */
+/* 一格课。**底色一律白**：上了色的格子也只染字和边框 ——
+   四五种浅底色摆在一张表上就糊成一片，白底才看得清哪几格是彩的 */
+.c{
+  height:var(--h);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:.6mm;
+  border:1px solid var(--line); border-radius:2mm;
+  background:#fff;
+}
+.c b{
+  font-family:var(--font-display); font-size:22px; font-weight:700;
+  letter-spacing:.5px; line-height:1.2;
+}
+/* 「书法（英）」比「语文」宽一倍，但横版一列有 52mm —— 纸上不用降档，
+   字号统一才整齐。降档只在手机上（那儿一列 62px），见文件末尾。
+   哪些名字算长在 build.py 里判：CSS 量不到字数，只能靠类名。 */
+/* 任课老师的本科（书法是英语老师上的）。淡一档，别和科目名抢 */
+.c small{ font-size:9.5px; color:var(--ink-soft); line-height:1.2; }
+
+.c.main{ border-color:var(--c); }
+.c.main b{ color:var(--c); }
+
+.c.empty{ background:var(--grid); border-style:dashed; }
+
+/* 午休：一条横贯的虚线，把上午和下午分开 */
+.rest{
+  grid-column:1 / -1;
+  display:flex; align-items:center; gap:3mm;
+  font-family:var(--font-display); font-size:10.5px; letter-spacing:.28em;
+  color:var(--ink-soft);
+  padding:1.4mm 0;
+}
+.rest::before, .rest::after{
+  content:""; flex:1 1 auto; border-top:1.5px dashed var(--line);
+}
+
+/* ── 机动格（课后班）──────────────────────────────────────
+   校外的课不在学校的节次里，可**它是星期几得和上面的列对齐** ——
+   所以不排成独立小表，而是接在同一个 grid 里当额外几行，
+   周三那条就落在「周三」底下。矮一档、虚线框，和上面的课格区分开；
+   空的那些留着手写（学期中间加了课直接往上写，不用重打一张）。 */
+.c.slot{
+  height:var(--hx);
+  /* 时间和名字左右排（纸上一格 52mm，横着放得下且一眼扫得顺）。
+     手机上一格只有 62px，那儿改回上下两行 —— 见文件末尾 */
+  flex-direction:row; align-items:center; gap:0 2mm;
+  /* center 不是 baseline：baseline 把两段字按基线钉在格子上沿，
+     整块就贴着顶了。中文没有下伸部，按中心对齐看着一样齐 */
+  border-style:dashed;
+}
+.c.slot small{
+  font-size:10.5px; color:var(--ink-soft);
+  font-variant-numeric:tabular-nums;   /* 时间要对齐 */
+}
+.c.slot b{ font-size:15px; font-weight:600; }
+
+/* ── 手机 ─────────────────────────────────────────────────
+   6 行一屏看完整周。只收行高、字号和纸边距，列数不变 ——
+   一眼看到整周正是这张表存在的理由，折成「一天一段」就没了。 */
+@media screen and (max-width:620px){
+  .sheet{ padding:8mm 4mm; }
+  .tt{ --h:58px; --pn:22px; }
+  .head h1{ font-size:18px; }
+  .hd{ font-size:12px; }
+  .p{ font-size:11px; }
+  .c b{ font-size:14px; letter-spacing:0; }
+  .c b.long{ font-size:10.5px; }   /* 「劳动（体）」5 个全角字，一列只有 62px */
+  .c small{ font-size:9px; }
+  .tt{ --hx:42px; }
+  /* 一格 62px 横着放不下「18:00~19:40 耶鲁」，摞成两行 */
+  .c.slot{ flex-direction:column; align-items:center; gap:0; }
+  .c.slot small{ font-size:8.5px; }
+  .c.slot b{ font-size:11px; }
+  .foot{ font-size:10px; }
+}

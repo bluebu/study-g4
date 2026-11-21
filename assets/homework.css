@@ -1,0 +1,123 @@
+/* ── 每日打卡单（A4 打印） ────────────────────────────────
+   从老站 ../english/homework/generate_checklist.py 的内联 style 搬来，
+   色值换成 palette.css 的变量。每张卡的主色由 build 时注入的 --c 决定
+   （听/指 蓝、读/点 橙、词/写 绿、练/AI 紫、语法 青）。
+
+   这一份只管卡片本身，A4 尺寸和边距由 print.css 的 .sheet 管。 */
+
+body{ font-family:var(--font-cn); color:var(--ink); font-size:13px; line-height:1.5; }
+/* --gap / --pad 是「一页装得下吗」的两个旋钮：项数多的那天 homework.py 会按
+   DENSITY 那张梯子往 .sheet 上注一档更紧的值（口径和估算表都在那边）。
+   这里的默认值就是原来的版式 —— 装得下的日子生成器一个字节都不注入。 */
+.sheet{ background:var(--card); padding:10mm 12mm; --gap:10px; --pad:11px; }
+
+/* 页头 */
+.head{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  border-bottom:3px solid var(--warn); padding-bottom:8px; margin-bottom:4px;
+}
+.head .t{ display:flex; align-items:baseline; gap:10px; }
+.head .date{
+  background:var(--warn); color:var(--card); font-size:17px; font-weight:700;
+  padding:3px 11px; border-radius:8px; letter-spacing:.5px;
+}
+.head h1{ font-size:20px; font-weight:700; letter-spacing:2px; margin:0; }
+.head .en{ font-size:10px; color:var(--ink-soft); letter-spacing:1.5px; text-transform:uppercase; }
+
+/* 页头右上角：距离下一个里程碑（期中 → 期末 → …）还有几天。
+   哪天考、叫什么名字全在 storage/spec/schedule/term.txt，学校改期只改那一处。
+
+   走琥珀 --warn —— 和首页那两条倒计时同一个意思：留神时间
+   （分类色给学科占着、红专属分数，见 palette.css）。
+   左边的日期是**实心**琥珀胶囊，这块用**浅底 + 左色条 + 描边**：同一支色分出
+   主次，一眼先看见今天几号、紧接着看见还剩几天，不是页头两坨实心橙打架。
+   ⚠️ 数字用 --ink 不是 --warn：琥珀压在 --warn-bg 上对比度只有 2:1 上下，
+   打出来是一团黄糊。首页 .count .num 也是这么配的（继承 --ink）。 */
+.head .dday{
+  display:flex; align-items:baseline; white-space:nowrap;
+  /* ⚠️ line-height 压到 1.15：24px 的数字按正文 1.5 行高会把整个页头撑高 4px，
+     而 homework.py 的「一页装得下吗」按 HEAD_H=56 估算（那张表在它文件里）。
+     压完这块 41px、页头还是 56px，估算表一个数都不用动。改字号要重量一遍。 */
+  line-height:1.15;
+  background:var(--warn-bg); border:1.5px solid var(--warn); border-radius:11px;
+  padding:5px 13px 6px 15px; position:relative; overflow:hidden;
+}
+.head .dday::before{      /* 左侧色条，和首页倒计时 / 学科卡片同一套形状 */
+  content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--warn);
+}
+.head .dday .lb{ font-size:12px; font-weight:600; margin-right:9px; }
+.head .dday .soon{        /* 「暂定」：日期是推的、学校还没通知 */
+  font-style:normal; font-weight:400; font-size:10px; color:var(--ink-soft); margin-left:4px;
+}
+.head .dday .n{
+  font-family:var(--font-display); font-size:24px; font-weight:800; letter-spacing:-.02em;
+}
+.head .dday .n.sm{ font-size:15px; letter-spacing:0; }   /* 「就是今天」，没有数字可放大 */
+.head .dday .unit{ font-size:12px; margin-left:3px; }
+.u{ display:inline-block; border-bottom:var(--w-line) solid var(--ink-line); width:62px; }
+
+.tip{ margin:9px 0 12px; font-size:11px; color:var(--ink-soft);
+      display:flex; justify-content:space-between; }
+
+/* 任务卡。break-inside:avoid —— 一项作业不能被分页切成两半 */
+.task{
+  display:flex; align-items:stretch; gap:9px;
+  border:1.5px solid var(--line); border-left:5px solid var(--c);
+  border-radius:9px; background:var(--card);
+  padding:var(--pad) 12px; margin-bottom:var(--gap);
+  break-inside:avoid;
+}
+.task .no{
+  flex:0 0 22px; height:22px; border-radius:50%;
+  background:var(--c); color:var(--card); font-size:12px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; margin-top:1px;
+}
+.task .body{ flex:1; min-width:0; }
+.task .title{ font-size:15px; font-weight:700; letter-spacing:.3px; }
+.task .title .tag{
+  font-size:10.5px; font-weight:600; color:var(--c);
+  border:1px solid var(--c); border-radius:4px;
+  padding:0 4px; margin-left:6px; vertical-align:1.5px;
+}
+.task .sub{ font-size:12.5px; color:var(--ink-soft); margin-top:3px; }
+.task .sub li{ list-style:none; margin-top:2px; padding-left:12px; position:relative; }
+.task .sub li::before{
+  content:""; position:absolute; left:2px; top:6px;
+  width:4px; height:4px; border-radius:50%; background:var(--c); opacity:.55;
+}
+.fill{ border-bottom:var(--w-line) solid var(--ink-line); display:inline-block; width:40px; }
+
+/* 勾选框 */
+.box{
+  flex:0 0 auto; display:inline-block; width:22px; height:22px;
+  border:1.8px solid var(--ink-box); border-radius:5px; background:var(--paper);
+}
+.box.big{ align-self:center; width:28px; height:28px; border-width:2px; }
+.mini{ display:inline-flex; gap:4px; vertical-align:-3px; margin-left:4px; }
+.mini i{ box-sizing:border-box; width:13px; height:13px; border:var(--w-box) solid var(--ink-box);
+         border-radius:3px; display:inline-block; }
+
+/* 单词表：两列，按列填 */
+.words{ display:grid; grid-auto-flow:column; column-gap:18px; row-gap:7px; margin-top:8px; }
+.w{ display:flex; align-items:center; gap:7px; font-size:12.5px; }
+.w .box{ width:16px; height:16px; border-radius:4px; }
+.w b{ font-weight:700; font-size:13px; min-width:68px; }
+.w s{ text-decoration:none; color:var(--ink-soft); }
+
+/* 页脚 */
+.memo{
+  margin-top:12px; border:1.5px dashed var(--line); border-radius:9px;
+  background:var(--paper); padding:8px 12px 10px;
+}
+.memo .lb{ font-size:11.5px; color:var(--warn); font-weight:700; letter-spacing:.5px; }
+.memo .ln{ border-bottom:1px solid var(--line); height:19px; }
+.foot{
+  margin-top:14px; border-top:2px dashed var(--line); padding-top:8px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.foot .sign{ font-size:12.5px; color:var(--ink); }
+.foot .sign span{ margin-right:16px; }
+.foot .cheer{
+  font-size:12.5px; color:var(--warn); font-weight:600;
+  background:var(--warn-bg); border-radius:20px; padding:4px 12px;
+}

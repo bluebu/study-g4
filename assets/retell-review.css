@@ -1,0 +1,80 @@
+/* 复述评价（英语 · 网页，不打印）。页骨架（.wrap .hero .back）走 site.css，
+   这儿只管结论条、事实牌和卡片。颜色走英语蓝，每处带兜底值（palette.css 被缓存成旧版时不至于透明）。 */
+
+.rr .hero .sub{ font-size:.86rem; }
+
+/* 结论条 */
+.rr .verdict{
+  background:var(--english-bg, #E3EEF8); border-radius:18px;
+  padding:12px 16px; margin:0 0 12px; font-size:.92rem; line-height:1.7;
+}
+.rr .verdict p{ margin:0; }
+.rr .verdict .v{ font-family:var(--font-display); font-size:1.08rem; font-weight:700; color:var(--english, #3A7CC3); margin-bottom:4px; }
+
+/* 事实牌：两列，窄屏也两列 */
+.rr .facts{ list-style:none; margin:0 0 14px; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.rr .facts li{
+  min-width:0; overflow-wrap:anywhere;
+  background:var(--card, #FFFDF8); border:1.5px solid var(--line, rgba(120,104,84,.16)); border-radius:14px;
+  padding:7px 11px 8px; font-size:.86rem; line-height:1.5;
+}
+.rr .facts small{ display:block; font-size:.68rem; letter-spacing:.06em; font-weight:700; color:var(--english, #3A7CC3); }
+
+/* 卡片 */
+.rr .card{
+  background:var(--card, #FFFDF8); border:2px solid var(--line, rgba(120,104,84,.16)); border-radius:22px;
+  box-shadow:0 3px 0 var(--line, rgba(120,104,84,.16));
+  padding:14px 16px 8px; margin:0 0 14px;
+}
+.rr .card h2{
+  display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+  margin:0 0 6px; font-family:var(--font-display); font-size:1.05rem; color:var(--english, #3A7CC3);
+}
+.rr .card h2 small{ font-family:var(--font-cn); font-size:.78rem; font-weight:400; color:var(--ink-soft, #9A8C7C); }
+.rr .card h2 .m{ font-family:var(--font-cn); font-size:.95rem; color:var(--ink, #4A3F36); }
+.rr .card ul{ list-style:none; margin:0; padding:0; }
+.rr .card li{ display:block; position:relative; padding:5px 0 5px 18px; font-size:.9rem; line-height:1.65; border-top:1px dashed var(--line, rgba(120,104,84,.16)); }
+.rr .card li:first-child{ border-top:0; }
+.rr .card li::before{ content:"•"; position:absolute; left:4px; color:var(--english, #3A7CC3); }
+.rr .card li b{ color:var(--ink, #4A3F36); }
+
+/* 逐章：章号 + 章名 + 时段一行，下面讲到 ✓ / 漏掉 ○ */
+.rr .ch{ padding:8px 0 4px; border-top:1.5px solid var(--line, rgba(120,104,84,.16)); }
+.rr .ch:first-of-type{ border-top:0; padding-top:2px; }
+.rr .ch-h{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:2px; }
+.rr .ch-h b{ font-size:.78rem; color:#fff; background:var(--english, #3A7CC3); border-radius:99px; padding:1px 9px; }
+.rr .ch-h span{ font-weight:700; font-size:.95rem; }
+.rr .ch-h em{ font-style:normal; font-size:.78rem; color:var(--ink-soft, #9A8C7C); margin-left:auto; }
+.rr .ch li{ border-top:0; padding:2px 0 2px 20px; }
+.rr .ch li.hit::before{ content:"✓"; color:var(--english, #3A7CC3); font-weight:700; }
+.rr .ch li.miss{ color:var(--ink-soft, #9A8C7C); }
+.rr .ch li.miss::before{ content:"○"; color:var(--ink-soft, #9A8C7C); }
+
+/* 下次复述之前：方法卡，底色区分 */
+.rr .card.method{ background:var(--english-bg, #E3EEF8); border-color:transparent; box-shadow:none; }
+.rr .card.method li{ border-top-color:rgba(58,124,195,.18); }
+/* 怎么评的：小字 */
+.rr .card.how li{ font-size:.8rem; color:var(--ink-soft, #9A8C7C); }
+
+/* KET 口语标准：左边一枚分数，右边项名 + 依据 */
+.rr .ket .k{ display:flex; gap:12px; align-items:flex-start; padding:8px 0; border-top:1px dashed var(--line, rgba(120,104,84,.16)); }
+.rr .ket h2 + .k{ border-top:0; }
+.rr .ket .s{
+  flex:0 0 52px; text-align:center; font-family:var(--font-display); font-size:1.35rem; line-height:1.2;
+  color:var(--english, #3A7CC3); background:var(--english-bg, #E3EEF8); border-radius:12px; padding:6px 0;
+}
+.rr .ket .s i{ font-style:normal; font-size:.7rem; color:var(--ink-soft, #9A8C7C); }
+.rr .ket .s.na{ color:var(--ink-soft, #9A8C7C); background:transparent; border:1.5px dashed var(--line, rgba(120,104,84,.16)); }
+.rr .ket .k span{ font-weight:700; font-size:.92rem; }
+.rr .ket .k p{ margin:2px 0 0; font-size:.84rem; line-height:1.6; color:var(--ink-soft, #9A8C7C); }
+
+/* 本次任务：老师群公告原文，照原样一行一段，浅底像一条消息 */
+.rr .task .ann{ background:var(--bg, #FBF6EB); border-radius:14px; padding:10px 14px; margin:2px 0 8px; }
+.rr .task .ann p{ margin:0; font-size:.88rem; line-height:1.75; overflow-wrap:anywhere; }
+
+/* 逐章对照的计数：标题旁两枚，章名旁一个「讲到 / 共」小计 */
+.rr .card h2 .tally{ display:flex; gap:6px; font-family:var(--font-cn); }
+.rr .card h2 .tally b{ font-size:.78rem; font-weight:700; border-radius:99px; padding:2px 9px; }
+.rr .card h2 .tally .hit{ color:var(--english, #3A7CC3); background:var(--english-bg, #E3EEF8); }
+.rr .card h2 .tally .miss{ color:var(--ink-soft, #9A8C7C); border:1.5px solid var(--line, rgba(120,104,84,.16)); }
+.rr .ch-h .sub{ font-style:normal; font-size:.76rem; font-weight:700; color:var(--english, #3A7CC3); }

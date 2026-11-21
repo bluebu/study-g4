@@ -1,0 +1,280 @@
+/* ── 语法练习（英语 · A4 打印）──────────────────────────────
+   一个大题一块，题面在前几张纸上，答案单独一张。
+   依赖 palette.css + print.css。
+
+   **主色是青（--c-gram）不是英语蓝**：打卡单上「语」「法」那一类就是这支青
+   （homework.py 的 CATEGORY），同一件事在两张纸上得是同一个颜色。
+
+   ⚠️ **横线宽度是固定的 --bl，别改成按答案长短算**。线一长一短等于把答案
+      印在纸上：too 和 suddenly 的空必须一样宽，孩子才得靠句子判断填什么。
+      几条线（不是多宽）才是给的提示 —— 由答案的词数定，在 grammar.py 里算。
+
+   ⚠️ 题面用无衬线拉丁字体：书上就是这个样子，孩子照着抄写也是印刷体。
+      **栈里要带 Linux 名**（Liberation Sans）—— PDF 是 CI 的 ubuntu 导出的，
+      那儿没有 Arial（见根 CLAUDE.md 的「字体」那节）。 */
+
+:root{
+  --gram:    var(--c-gram);
+  --gram-bg: var(--c-gram-bg);
+  --bl: 62px;          /* 一条空格线的宽度。固定值，见上面那条 */
+  --row: 12mm;          /* 变形表一行的高度：够写 more carefully */
+}
+
+body{
+  margin: 0;
+  font-family: var(--font-cn);
+  color: #111;
+  font-size: 13px;
+  background: #888;             /* 屏幕上模拟纸外的桌面 */
+}
+@media print{ body{ background: #fff; } }
+
+/* 拉丁正文。中文（提示、列头）落回 --font-cn */
+.q, .eg, .bank, .tbl, .alist{
+  font-family: Arial, "Liberation Sans", "Helvetica Neue", var(--font-cn), sans-serif;
+}
+
+/* ── 页头在每页顶上重复 ──────────────────────────────────────
+   静态 HTML 不知道分页点在哪，所以整页包进 <table>、页头放 <thead> ——
+   表头重复是打印规范定义的行为，浏览器会自动为它留出每页的高度。
+   position:fixed 不行（内容不给它让位，第 2 页起压字），@page margin box
+   Chrome 不支持。原委和实验记录在 writing.css 同一段注释里。 */
+.pg{ width: 100%; border-collapse: collapse; }
+.pg th, .pg td{ padding: 0; text-align: left; font-weight: 400; vertical-align: top; }
+/* 纸的上边距交给表头：挂在 .sheet 上只在元素开头出现一次，第 2 页起页头就贴纸边了 */
+.sheet{ padding-top: 0; padding-bottom: 0; }
+.pg thead th{ padding-top: 14mm; }
+/* 表格末尾一点底部空间都不能留，否则 Chrome 为「下一页的表头」预留的高度
+   会被顶成真的一页，PDF 末尾多一张全白的纸（写字单踩过，见 writing.css） */
+.pg tbody td{ padding-bottom: 0; }
+/* 纸的下边距同理交给 <tfoot> —— 它和表头一样逐页重复。写字单最后一页是贴着
+   纸底收的（那张单子排到一半，看不出来），这张不行：一个大题一整块，内容
+   真能排到纸边上，而打印机最下面那几毫米根本印不出来。 */
+.pg tfoot td{ height: 12mm; }
+
+.head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--gram);
+  padding-bottom: 6px;
+  margin-bottom: 4mm;
+}
+.head h1{ font-size: 16px; margin: 0; padding-right: 10px; }
+.head h1 small{ font-size: 12px; font-weight: 400; color: #666; }
+.head .info{ font-size: 12px; white-space: nowrap; }
+.blank{ display: inline-block; border-bottom: 1px solid #111; width: 44px; }
+
+.hint{ font-size: 11.5px; color: #777; margin: 0 0 4mm; }
+
+/* ── 一个大题 ──────────────────────────────────────────────
+   **一个大题不劈成两半**：分页点由内容自己定（没有手写的换页旋钮），
+   一题一页地排满，排不下的整块挪到下一页 —— 半张表格分在两张纸上没法用。 */
+.blk, .ablk{ margin-bottom: 6mm; break-inside: avoid; }
+.bh{
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 3px;
+  margin-bottom: 3mm;
+  break-after: avoid;            /* 大题标题不许独自留在页底 */
+}
+.bh .no{
+  flex: 0 0 auto;
+  width: 6mm; height: 6mm;
+  border-radius: 50%;
+  background: var(--gram);
+  color: #fff;
+  font-size: 11px;
+  display: grid; place-items: center;
+  align-self: center;
+}
+.bh h2{ font-size: 13.5px; font-weight: 700; margin: 0; flex: 1; line-height: 1.3; }
+.bh .tag{
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  color: var(--gram);
+  background: var(--gram-bg);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+/* ── 讲解 ──────────────────────────────────────────────────
+   这个单元就那么几条规则，排在题目前面，动笔前两分钟看完。
+   左边要点（中文）、右边例子（英文），例子里的词描青色 ——
+   **孩子扫的是右边那一列**：规则记不住，例句的样子记得住。 */
+.tips{
+  background: var(--gram-bg);
+  border-radius: 3mm;
+  padding: 3mm 4mm;
+  margin: 0 0 3mm;
+}
+.tip{
+  display: grid;
+  grid-template-columns: 42mm 1fr;
+  column-gap: 3mm;
+  align-items: baseline;
+  line-height: 1.45;
+}
+.tip + .tip{ margin-top: 1.4mm; }
+.tip b{ font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.tip .ex{
+  font-family: Arial, "Liberation Sans", "Helvetica Neue", var(--font-cn), sans-serif;
+  font-size: 13.5px;
+  color: #111;
+}
+.tip em{ font-style: normal; font-weight: 700; color: var(--gram); }
+.tip .sub{ grid-column: 2; font-size: 10.5px; color: #6B6B6B; line-height: 1.35; }
+
+/* 讲解块的名字塞不进 6mm 的圆点里，改成一个宽标签 */
+.bh .no.wide{
+  width: auto;
+  height: 5mm;
+  border-radius: 3px;
+  padding: 0 6px;
+  font-size: 10.5px;
+}
+
+/* ── 方框里的备选词 ────────────────────────────────────────
+   书上是一个圆角框，词摊在里面。例句用掉的那个词跟书上一样标出来 ——
+   「每个词只能用一次」这条规则得看得见。 */
+.bank{
+  display: flex;             /* ⚠️ 必须是 flex，不能是普通块 + 居中文本 —— 见下 */
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1mm 5mm;
+  border: 1.6px solid var(--gram);
+  border-radius: 6mm;
+  padding: 3mm 6mm;
+  margin: 0 0 3mm;
+}
+/* ⚠️ 词与词之间**在 HTML 里没有空白**（行内元素之间不许留空白，见模板顶部），
+   所以普通块里这一串是**一个断不开的长行** —— 纸上看不出来（210mm 够宽），
+   手机上却把整页顶到 602px、连 media query 都不触发了（媒体查询读的是视口宽度，
+   而视口被内容撑大了）。改成 flex：每个词是一个 flex 项，自己会折行。 */
+.bank .w{ font-size: 14.5px; color: #111; }
+.bank .w.used{ color: var(--gram); text-decoration: line-through; }
+
+/* 例句 / 例行：书上印好的那一条 */
+.eg{
+  margin: 0 0 3mm;
+  font-size: 14px;
+  color: var(--gram);
+  line-height: 1.5;
+}
+.eg b{
+  font-weight: 400;
+  font-size: 11px;
+  border: 1px solid var(--gram);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-right: 6px;
+  vertical-align: 1.5px;
+}
+.eg .q em{ font-style: normal; font-weight: 700; border-bottom: 1.2px solid var(--gram); }
+.eg .cn{ font-family: var(--font-cn); font-size: 12px; margin-left: 10px; }
+
+/* ── 填空题 ────────────────────────────────────────────── */
+.its{ list-style: none; margin: 0; padding: 0; }
+.it{
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-bottom: 3.4mm;
+  break-inside: avoid;
+}
+.it .n{
+  flex: 0 0 auto;
+  width: 14px;
+  text-align: right;
+  font-style: normal;
+  font-size: 12px;
+  color: #888;
+}
+.it .q{ flex: 1; font-size: 15px; line-height: 1.9; }
+/* 一处空。**几条线是提示，宽度不是** —— 每条都是 --bl */
+.bl i{
+  display: inline-block;
+  width: var(--bl);
+  margin: 0 3px;
+  border-bottom: var(--w-line) solid var(--ink-line);
+}
+/* 空后面紧跟句号 / 问号时收掉右边那点间距，不然标点飘在线外头 */
+.bl.tight i:last-child{ margin-right: 0; }
+/* 附属行：中文提示（小字灰）或者对话的下一句（和题面同一档） */
+.it .sub{ display: block; font-size: 15px; }
+.it .sub.cn{ font-family: var(--font-cn); font-size: 12.5px; color: #666; line-height: 1.5; }
+
+/* ── 变形表 ────────────────────────────────────────────────
+   table-layout:fixed —— 列宽由列数定，不跟着 differently / more carefully
+   这种长词走，手机上也就不会被撑出横向滚动。 */
+.tbl{
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+.tbl th, .tbl td{
+  border: 1px solid var(--ink-rule);
+  padding: 0 3mm;
+  height: var(--row);
+  line-height: 1.3;
+}
+.tbl .hd th{
+  background: var(--gram-bg);
+  color: var(--gram);
+  font-family: var(--font-cn);
+  font-size: 12.5px;
+  font-weight: 700;
+  height: 7mm;
+}
+.tbl .term{ font-weight: 700; }
+.tbl .egrow td{ color: var(--gram); }
+.tbl tr:nth-child(even) td{ background: #FAFAFA; }
+
+/* ── 答案页 ────────────────────────────────────────────────
+   家长留着对的那一张。一行一条，两栏排下来，一页收得住。 */
+.ans .head{ border-bottom-style: dashed; }
+.ans .head .info{ font-size: 11px; color: #777; }
+.alist{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 8mm;
+  font-size: 13.5px;
+}
+.alist li{ break-inside: avoid; margin-bottom: 1.6mm; line-height: 1.5; }
+.alist .n{
+  display: inline-block;
+  width: 16px;
+  text-align: right;
+  margin-right: 6px;
+  font-style: normal;
+  font-size: 11.5px;
+  color: #888;
+}
+.alist .a{ font-weight: 700; }
+.atbl{ font-size: 13px; }
+.atbl td{ height: 6mm; }
+.atbl .term{ font-weight: 700; }
+
+.foot{
+  margin: 4mm 0 0;
+  text-align: right;
+  color: #999;
+  font-size: 10px;
+}
+
+/* ── 手机上 ────────────────────────────────────────────────
+   纸上那条 62px 的横线在 390px 屏上一行放不下几条，所以窄屏收窄。
+   ⚠️ 只在 @media screen 里改，@media print 一个字都不动。 */
+@media screen and (max-width: 560px){
+  :root{ --bl: 46px; }
+  /* 讲解在窄屏上摞起来：36mm 一列 + 例句，390px 上挤成两三行 */
+  .tip{ grid-template-columns: 1fr; }
+  .tip .sub{ grid-column: 1; }
+  .bank{ padding: 3mm; gap: 1mm 3mm; }
+  .alist{ columns: 1; }
+}
