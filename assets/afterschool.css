@@ -1,0 +1,395 @@
+/* ── 放学检查（课程表）───────────────────────────────────────
+   一天一张，打印一叠放书桌上。顺序就是检查顺序：先看作业抄没抄下来，
+   再三科逐项过，最后收书包。依赖 palette.css + print.css。
+
+   **两个格子的列宽是 --col，表头小字和格子共用它** —— 表头 `.cols` 和
+   每行 `.row` 各自是 flex，靠同一个变量对齐。改宽度只改 --col 一处，
+   改别处就会出现「小字对不到格子上」，家长分不清哪个框是哪个。
+
+   项目名 20mm 是按「一课一练改签」六个字定的（最长那项），
+   换更长的项目名要一起加宽，不然横线会被挤没。 */
+
+/* ── 这张单子的色阶（一族，打印友好）──────────────────────────
+   原先纸上混着三家颜色：纯黑的线（#111）、中性灰的框和小字
+   （#3A3A3A / #555 / #666 / #777 / #999 / #333 / #222）、紫的圈和序号
+   —— 又重又杂，「有的过重、有的过轻」。现在全站这一张单子只有：
+   **四级中性灰 + 一支紫 + 一支红**，四级灰都掺了一点紫、和 --accent 同族，
+   彩打看着是一家的；黑白打印时紫掉成灰，只剩四级浓淡，层次照旧。
+
+   哪一级多重，按「孩子的眼睛该先落在哪儿」定：
+     t1  要读的字（栏名、项目名、说明）        灰度 45   最深
+     t2  要画的框（勾选框、说明行的小圈）      灰度 74   次深，比字轻才不抢眼
+     t3  要写字的横线、次要小字                灰度 108  铅笔字要压得住它
+     t4  最轻的提示（页脚、页底虚线）          灰度 140
+   紫是 112，正好落在 t3 / t4 之间 —— 它只是装饰，别比字重。
+   ⚠️ 墨色的**口径**（粗细一律 px 不用 pt、灰度上限）在 print.css；
+   这儿只把那几个变量取成本族的色调，角色一个都没换。 */
+:root{
+  --t1: #2E2A38;
+  --t2: #4C4658;
+  --t3: #6E6880;
+  --t4: #8E88A0;
+  --red: #C62828;          /* 唯一的红：页底示范的对勾和叉，「拿红笔」的意思 */
+
+  --ink-box:  var(--t2);   /* 勾选框、小圈的边框 */
+  --ink-line: var(--t3);   /* 写字的横线 */
+  --w-box: 1.6px;          /* 2px 太重：26 个框排下来比正文还抢眼 */
+}
+
+/* ⚠️ **每一处文字都要写 line-height，而且写数字**（不写就是 `normal`，
+   由字体的度量决定）。这张纸是「刚好一页」的：本地 mac 是 PingFang、
+   线上导 PDF 的 ubuntu 是 Noto Sans CJK，`normal` 在两边差得出 2~3px/行 ——
+   15 行就是 40px，本地一页、线上多印一张白纸，而 HTML 里看不出来。
+   数字行高两边一样；格子和横线本来就是 mm，于是整页高度是**算得出来**的。 */
+body{
+  margin: 0;
+  font-family: var(--font-cn);
+  color: var(--t1);
+  line-height: 1.3;
+  font-size: 13px;
+  background: #888;             /* 屏幕上模拟纸外的桌面 */
+}
+@media print{ body{ background: #fff; } }
+
+.sheet{
+  /* 本栏目的强调色（沿用课程表家族的 --c-drill 那支紫）。
+     **它只做装饰**：栏号的圈、项目序号、第一栏的框 —— 孩子要拿笔画的东西
+     （勾选框、写字的横线）一律走 print.css 的墨色变量，跟这支紫无关。
+     所以这儿不用压到灰度 90 去凑对比度，反而要放浅一点：
+     原先 #6B4A87 填成实心圆盘，一张纸上四个，看着有压迫感。 */
+  --accent: #7C61A0;
+  --col: 10mm;      /* 「校内完成」「家中完成」两个格子的列宽，表头和格子共用 */
+  /* **左边这条槽 = 一个记号位 --dia + 一段空 --pad**。
+     栏名前的圆圈、项目序号、说明行前的小圈**都占满 --dia 并在里面居中**，
+     后面一律留 --pad 再开始文字 —— 于是三种记号的圆心落在同一条竖线上，
+     栏名 / 项目名 / 说明文字也左对齐成一条线。
+     踩过两处：h2 自己带 2mm gap、圈又比序号宽 0.5mm，「语文」比「改错」
+     右了 2.5mm；把槽填满又没留 --pad，圈直接顶到字上 */
+  --dia: 5.5mm;     /* 记号位：按最大的那个（栏名前的圆圈）定 */
+  --pad: 2mm;       /* 记号和文字之间 */
+  /* **格子只有一种**：说明行前面的和项目行后面的是同一个东西（同边长、
+     同圆角、同粗细），孩子看到方格子就知道「这儿要勾」。一处定义 */
+  --box: 5mm;
+  /* **说明行和项目行同一套行距**：格子 5mm + 上下 --pitch。
+     一眼看着是一张表、不是两种东西 —— 说明行原先 12px / 挤在一起，
+     和上面的项目行差一截。两处都读这一个变量，**别只改一处**。
+     这个数就是一页的预算：纸上 21 行（15 个项目 + 6 条说明），
+     1.7mm → 行距 8.4mm，自然高 1097.8px / A4 1122.5px。
+     往上调之前先量（`node tools/shot.mjs … --probe`，超 1122.5px 就多一张纸） */
+  --pitch: 1.7mm;
+  /* 项目名那一列：装得下最长那项「一课一练改签」六个字（6 × 15px ≈ 24mm）。
+     **项名字号或长度一动，这儿要一起动** —— 不然名字折成两行，
+     那一行的横线跟着塌下去 */
+  --name: 25mm;
+  display: flex;
+  flex-direction: column;
+  min-height: 297mm;
+  /* 加了下半区（家庭作业 5 行）、说明行又跟项目行统一了行距之后，
+     纸边距从 14mm 一路收到 11mm。**别再往下收** ——
+     家用喷墨最后几毫米印不到 */
+  padding: 11mm 12mm;
+}
+@media print{ .sheet{ height: 297mm; } }
+
+/* ── 页头 ── */
+.head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1.5px solid var(--t1);   /* 2px 纯黑压得太狠 */
+  padding-bottom: 6px;
+  margin-bottom: 3mm;
+}
+.head h1{ font-size: 19px; line-height: 1.2; margin: 0; padding-right: 10px; }
+.head .info{ font-size: 12.5px; line-height: 1.3; white-space: nowrap; }
+.blank{ display: inline-block; width: 46px;
+        border-bottom: var(--w-line) solid var(--ink-line); }   /* 也是写字的横线 */
+
+/* ── 一栏 ── */
+.part{ margin-bottom: 2mm; }
+
+/* 栏抬头这一行：栏名和「校内完成 / 家中完成」**排在同一行**。
+   两样东西放进**同一个 grid 格子**（都是 grid-area 1/1，叠着），于是：
+     · 小字那条仍然是**整栏宽**，和下面 .rows 的两列对得上
+       （每组靠 .pad 把标签推到那一列的格子上方）
+     · align-items:center 让小字和栏名竖着**居中对齐**
+   ⚠️ **别改成把 .cols 塞进 h2 里跟栏名排 flex** —— 那样两个 half 只剩
+   「整栏宽 − 栏名宽」的一半，标签立刻和格子错开，家长分不清哪个框是哪个。 */
+.bar{
+  display: grid;
+  align-items: center;
+  margin: 0 0 1.6mm;
+}
+.bar > *{ grid-area: 1 / 1; }
+
+.part h2{
+  display: flex;
+  /* center 不是 baseline：圈是空元素，baseline 就是它的底边，
+     对出来圈心比字心低 2.39px（量的）。栏名永远只有一行，center 稳 */
+  align-items: center;
+  gap: var(--pad);
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;                 /* 行距归 .bar 管 */
+  line-height: 1.2;
+}
+/* 栏号：**空心圈**，不是实心圆盘 —— 四个实心紫盘排下来一张纸就压住了。
+   box-sizing 必须是 border-box：flex-basis 就是 --dia，边框要是往外长，
+   这一栏的记号位就比别的宽 2.8px，左对齐当场散掉（--dia 那段说的那条线） */
+.part h2 .no{
+  flex: 0 0 var(--dia);
+  box-sizing: border-box;
+  width: var(--dia); height: var(--dia);
+  border-radius: 50%;
+  border: 1.4px solid var(--accent);
+  background: #fff;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  display: grid; place-items: center;
+}
+.part h2 small{ font-weight: 400; color: var(--t3); font-size: 11px; }
+
+/* 第一栏：作业抄下来了吗 —— 上底色，一眼看出先过这一栏 */
+/* 第一栏：浅底 + 实线边框 —— 底色 #F0E7F7 灰度 235，黑白打印几乎是白的，
+   光靠底色看不出这是一个框 */
+.part.first{
+  background: var(--c-drill-bg);
+  border: 1.2px solid var(--accent);
+  border-radius: 5px;
+  padding: 2mm 4mm 2.5mm;
+}
+
+/* 说明行：每条前面一个格子，过一条勾一个 —— **和项目行后面的格子一模一样**
+   （原先是圆圈，两种记号让人分不清哪个才是要勾的） */
+.note{
+  --lh: 1.2;                 /* 行高和格子边长要一起参与算偏移，所以做成变量 */
+  --dot: var(--box);
+  display: flex;
+  /* **不用 align-items:baseline** —— 格子是个空元素，它的基线就是自己的底边，
+     于是格子的**底边**对到文字基线上、整个格子高出文字中线 3px（量出来的）。
+     也不用 center：手机上说明会折成两行，center 会把格子挪到两行之间去。
+     flex-start 起头 + 下面那个偏移，格心永远对准**第一行**文字的中线 */
+  align-items: flex-start;
+  gap: var(--pad);
+  /* 字号、行高、行距**和项目名一样**（15px / 1.2 / --pitch）：
+     说明也是要读的字，没理由比项目名小一号、挤一档 */
+  font-size: 15px;
+  color: var(--t1);
+  margin: 0;
+  padding: var(--pitch) 0;
+  line-height: var(--lh);
+}
+.note i{
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: var(--dot); height: var(--dot);
+  /* 格心 → 第一行文字的中线：(行高 − 边长) / 2 */
+  margin-top: calc((var(--lh) * 1em - var(--dot)) / 2);
+  /* 格子比记号位窄，左右各补一半 —— 格心落在记号位中线上（和栏名的圈、
+     项目序号同一条竖线），文字也就和栏名、项目名对齐 */
+  margin-left: calc((var(--dia) - var(--dot)) / 2);
+  margin-right: calc((var(--dia) - var(--dot)) / 2);
+  border: var(--w-box) solid var(--ink-box);
+  border-radius: 1mm;
+  background: #fff;
+}
+
+/* 抄作业用的横线 */
+.lines{ margin-top: 2mm; }
+.lines .ln{ height: 8mm; border-bottom: var(--w-line) solid var(--ink-line); }
+
+/* ── 表头两个小字 + 逐项两个格子：共用 --col / --name 对齐 ── */
+.cols{
+  display: flex;
+  gap: 8mm;                /* 和 .rows 的 column-gap 一样，两组才对得上列 */
+  font-size: 9.5px;
+  line-height: 1.2;
+  color: var(--t3);
+}
+/* 一组标签对齐一列的格子。列数由模板按 cols 出几组，宽度走同一套变量 */
+.cols .half{ flex: 1 1 0; display: flex; align-items: baseline; min-width: 0; }
+.cols .half .pad{ flex: 1 1 auto; }
+/* nowrap：格子只有 10mm，「校内完成」四个字比它宽 —— 让标签溢出格子居中
+   排开，别折成两行（折了就压到下一行的项目名上） */
+.cols .half span:not(.pad){
+  flex: 0 0 var(--col);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 项怎么排：**5 个一组、2 列，按列填**（--rows / --gcols 由生成器注入）。
+
+   **不用 CSS 多列**：那东西会自动平衡行数，数学 3 项会被劈成左 2 右 1。
+   grid 固定行数 + auto-flow column 才是「一组 5 个，不足 5 个不换列」：
+   语文 9 项 → 5+4，数学 3 项、英语 2 项 → 整组留在左列，右列空着但**仍占位**
+   （列宽按 --gcols 固定），所以三科的名字、横线、格子落在同两条竖线上。
+
+   超过 --rows × --gcols 项会自己长出第三列（grid-auto-columns 兜着），
+   那时候一列就窄了 —— 真到那一步该拆栏，不是接着挤。 */
+.rows{
+  display: grid;
+  grid-template-columns: repeat(var(--gcols, 2), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows, 5), auto);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  column-gap: 8mm;
+}
+
+/* 项目序号：**顺序就是做的顺序**（spec 里项行的顺序，预习复习排末尾） */
+.row .i{
+  flex: 0 0 var(--dia);
+  margin-right: var(--pad);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: "Times New Roman", var(--font-cn), serif;
+  text-align: center;
+}
+
+.row{
+  display: flex;
+  align-items: center;
+  /* **显式 width:100%**：grid item 本该自己 stretch，实测内容少的行只有
+     46px 宽 —— 横线塌成 0、格子挤到左边。量出来的，别删 */
+  width: 100%;
+  gap: 0;
+  /* 横线是要写字的（「小卷 → 1 课看拼音写词，错改 3 遍」），行高要够下笔。
+     纸上现在 15 行（语文 5 + 数学 3 + 英语 2 + 家庭作业 5），一页的预算全在
+     这一处 —— 行距是 --pitch（说明行共用同一个数，见文件头）。
+     **再加项之前先量一遍**（`node tools/shot.mjs … --probe` 看 .sheet 高度，
+     超过 1122.5px 就是超出 A4 了，PDF 会多出一张纸） */
+  padding: var(--pitch) 0;
+  /* **行与行之间不画分隔虚线** —— 每行本来就有一条写字的横线（.fill），
+     再来一条通栏虚线就是笔记本横格那个样子，说过不要了。行距靠 padding 分开 */
+}
+/* line-height 1.2 = 18px < 格子 5mm(18.9px) —— **行高由格子定，不由字体定** */
+.row .name{ flex: 0 0 var(--name); font-size: 15px; line-height: 1.2; }
+/* 横线：写今天这一类具体是什么（「小卷 → 1 课看拼音写词，错改 3 遍」）*/
+.row .fill{
+  flex: 1 1 auto;
+  margin: 0 3mm;
+  border-bottom: var(--w-line) solid var(--ink-line);
+  align-self: stretch;
+}
+/* 空格子（右列没排满的那几格）：没序号没项目名，横线**从项目名那一列起**
+   —— 和上面几行的名字左边缘对齐，够写下老师临时加的那一项。
+   格子照旧两个，所以「校内 / 家中」那两条竖线不断。
+   ⚠️ 类名叫 spare 不叫 blank —— `.blank` 是页头「姓名 ___」那条填空线
+   （带 `border-bottom`），撞上了每个空行底下会多出一条通栏黑线 */
+.row.spare .fill{ margin-left: 0; }
+
+.row .box{
+  flex: 0 0 var(--col);
+  display: grid;
+  place-items: center;
+}
+/* 两个格子之间留一点距离：贴太近容易勾错格，表头那两个四字标签也会糊成
+   一片（「校内完成家中完成」）。**表头和格子用同一个间距**才对得齐 */
+.row .box + .box,
+.cols .half span:not(.pad) + span{ margin-left: 2.5mm; }
+.row .box::before{
+  content: "";
+  /* border-box：2px 的边框吃在这 5mm 里 —— 不然边框一加粗，19 行各高 0.5mm，
+     整张纸就顶到第二页去了（改粗细前先想一下这条） */
+  box-sizing: border-box;
+  width: var(--box); height: var(--box);
+  border: var(--w-box) solid var(--ink-box);
+  border-radius: 1mm;
+  background: #fff;
+}
+
+/* ── 下半区（spec 里 `[分区]` 之后的栏）────────────────────────
+   **不是分页，一天还是一张纸**：上半区是学校留的作业（照作业本核），
+   下半区是家里加的 —— 隔开就行，别抢眼。
+
+   试过两版都不对：一条通栏实线（这张纸上到处是横线，分不出是「边界」还是
+   「又一行」）、浅底加描边整块框起来（太显眼，反倒像这一区更重要）。
+   现在是**一条点线** —— 点线在纸上只有「这儿隔一下」这一个意思，
+   不会被当成要写字的横线，也不会把这一区抬起来。
+   区里的栏一律照常样式：**补充区和上面三科长得一样**，只是隔在线下面。
+
+   ⚠️ 这一区**不许左右缩进**（别加 padding-left / margin-left）：
+   一缩进来，下半区的项目名、横线、格子就和上半区那几条竖线错开了。 */
+.zone.other{
+  margin-top: 4mm;
+  padding-top: 3mm;
+  border-top: 2px dotted var(--t3);
+}
+
+/* 一个区里的几栏**并排**（spec 里 `[分区] cols=2`）：第一栏在左半边、
+   第二栏在右半边。列间距和上半区两列的 8mm 一样 —— 看着是同一套栅格。
+   align-items:start：两栏项数不一样时各自贴顶，不要被拉齐 */
+.zone.side{
+  display: grid;
+  grid-template-columns: repeat(var(--zcols, 2), minmax(0, 1fr));
+  column-gap: 8mm;
+  align-items: start;
+}
+.zone.side .part{ margin-bottom: 0; }
+
+/* ── 页底 ── */
+.tip{
+  margin-top: auto;
+  padding-top: 2mm;
+  border-top: 1.2px dashed var(--t4);
+  font-size: 11px;
+  color: var(--t2);
+  line-height: 1.5;
+}
+.tip b{ color: var(--t1); }
+/* 批改红（--red）：页底那条里直接画出来的对勾和叉。这支红是「拿红笔」的
+   意思，不是色板里的分类色（那儿刻意没有红）；灰度 75、和 t2 一档，
+   黑白打印也够深，形状本身也认得出。
+
+   ⚠️ **两个符号都用 CSS 画，不用字体里的字符** —— 两条路都试过、都不行：
+     · ✓ (U+2713) / ✗ (U+2717) 属于 Dingbats，**线上导 PDF 的 ubuntu runner
+       不保证有字形**（只装 fonts-noto-cjk + 楷体），缺字形就印成一个方块，
+       而本地 mac 有 Apple Symbols 兜底、根本看不出问题
+     · √ (U+221A) 是**根号**，顶上那一横很明显 —— 一眼就看出「这不是对号」
+   用 border 画（不是 background）：背景图形在打印对话框里能被关掉，
+   前景的边框关不掉。 */
+.tip .mark{
+  display: inline-block;
+  margin: 0 2px;
+  box-sizing: border-box;
+}
+/* 对勾：一个方块只留左、下两条边，转 -45° */
+.tip .mark.ok{
+  width: 3.4mm; height: 1.9mm;
+  margin-bottom: .6mm;
+  border-left: 2px solid var(--red);
+  border-bottom: 2px solid var(--red);
+  transform: rotate(-45deg);
+}
+/* 叉：两条横线，各转 ±45° */
+.tip .mark.no{ position: relative; width: 3.2mm; height: 3.2mm; }
+.tip .mark.no::before,
+.tip .mark.no::after{
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  border-top: 2px solid var(--red);
+}
+.tip .mark.no::before{ transform: rotate(45deg); }
+.tip .mark.no::after{ transform: rotate(-45deg); }
+.foot{ margin-top: 1.5mm; text-align: right; color: var(--t4);
+       font-size: 10px; line-height: 1.3; }
+
+/* ── 屏幕（手机）：页头左右分列改成上下两行 ── */
+@media screen and (max-width: 760px){
+  .head{ flex-direction: column; align-items: flex-start; gap: 3px; }
+  .head h1{ padding-right: 0; }
+  .head .info{ white-space: normal; }
+  /* 窄屏把两列格子收窄，横线才不至于被挤没 */
+  .sheet{ --col: 12mm; --name: 20mm; }
+  /* 纸上排两列是为了省纸；手机一屏只有 390px，两列每列不到 180px、
+     横线就没了 —— 窄屏一律退回一列（纵向不缺空间）。
+     表头那第二组也收掉，不然它对着空气 */
+  .sheet{ --col: 12mm; --name: 22mm; }
+  .rows{ grid-template-columns: 1fr; grid-template-rows: none; grid-auto-flow: row; }
+  /* 并排的区在手机上也退回一列（一列不到 180px，横线就没了） */
+  .zone.side{ grid-template-columns: 1fr; }
+  .zone.side .part{ margin-bottom: 2mm; }
+  .cols .half + .half{ display: none; }
+}
